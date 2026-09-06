@@ -1,0 +1,132 @@
+﻿/* Main Shop Collections */
+.shop-collections-page {
+  padding: 80px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.shop-collections-page h1 {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 300;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: 60px;
+}
+
+/* 2x2 Grid setup for 4 items */
+.collections-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+}
+
+.collection-card {
+  position: relative;
+  height: 350px;
+  background: #F5F5F5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  overflow: hidden;
+  transition: all 0.4s ease;
+  border-radius: 8px;
+}
+
+.collection-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.08);
+}
+
+.collection-card.premium-lounge {
+  background: #111111;
+  color: #D4AF37; /* Gold accent */
+  border: 1px solid #D4AF37;
+}
+
+.collection-card h2 {
+  font-size: 1.3rem;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #111111;
+  z-index: 2;
+  background: rgba(255,255,255,0.95);
+  padding: 20px 40px;
+  border: 1px solid #111;
+  transition: all 0.3s ease;
+}
+
+.collection-card.premium-lounge h2 {
+  background: transparent;
+  color: #D4AF37;
+  border: 1px solid #D4AF37;
+}
+
+.collection-card:hover h2 {
+  background: #111111;
+  color: #FFFFFF;
+}
+
+.collection-card.premium-lounge:hover h2 {
+  background: #D4AF37;
+  color: #111111;
+}
+
+/* Department Sub-categories */
+.department-categories {
+  padding: 60px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.department-categories h2 {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+}
+
+.dept-cat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.dept-cat-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+  background: #FFFFFF;
+  border: 1px solid #E0E0E0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #111111;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.dept-cat-btn:hover {
+  background: #111111;
+  color: #FFFFFF;
+  border-color: #111111;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+}
+
+@media (max-width: 1024px) {
+  .dept-cat-grid { grid-template-columns: repeat(2, 1fr); }
+  .collection-card { height: 280px; }
+}
+
+@media (max-width: 768px) {
+  .collections-grid { grid-template-columns: 1fr; }
+  .collection-card { height: 220px; }
+  .shop-collections-page { padding: 40px 16px; }
+}

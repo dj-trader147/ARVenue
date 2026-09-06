@@ -1,0 +1,221 @@
+/* ===== HERO VIDEO ===== */
+.hero-video-section {
+  position: relative;
+  width: 100%;
+  height: 55vh;
+  min-height: 300px;
+  max-height: 600px;
+  overflow: hidden;
+  background: #111111;
+}
+
+.hero-video-section video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hero-video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.15), rgba(0,0,0,0.4));
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 40px;
+}
+
+.hero-video-text {
+  color: #FFFFFF;
+  text-align: center;
+}
+
+.hero-video-text h2 {
+  font-size: 1.1rem;
+  font-weight: 300;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.hero-video-text p {
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.7);
+  text-transform: uppercase;
+}
+
+.hero-video-fallback {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== INFO BUTTONS ===== */
+.info-buttons-section {
+  padding: 48px 24px;
+  background: #FAFAFA;
+}
+
+.info-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.info-btn {
+  position: relative;
+  background: #FFFFFF;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  padding: 20px 12px;
+  text-align: center;
+  cursor: default;
+  transition: all 0.3s ease;
+  animation: btn-flicker 3s ease-in-out infinite;
+}
+
+.info-btn:nth-child(2) { animation-delay: 0.4s; }
+.info-btn:nth-child(3) { animation-delay: 0.8s; }
+.info-btn:nth-child(4) { animation-delay: 1.2s; }
+.info-btn:nth-child(5) { animation-delay: 1.6s; }
+.info-btn:nth-child(6) { animation-delay: 2.0s; }
+.info-btn:nth-child(7) { animation-delay: 2.4s; }
+.info-btn:nth-child(8) { animation-delay: 2.8s; }
+
+.info-btn:hover {
+  border-color: #111111;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+  animation-play-state: paused;
+}
+
+.info-btn-icon {
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.info-btn-text {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #111111;
+  line-height: 1.4;
+}
+
+@keyframes btn-flicker {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 rgba(0,0,0,0); }
+  50% { opacity: 0.85; box-shadow: 0 0 12px rgba(0,0,0,0.04); }
+}
+
+/* ===== BRAND INFO ===== */
+.brand-info-section {
+  padding: 72px 24px;
+  background: #FFFFFF;
+}
+
+.brand-info-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: start;
+}
+
+.brand-info-block h3 {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #111111;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #E0E0E0;
+}
+
+.brand-info-block p {
+  font-size: 0.9rem;
+  font-weight: 300;
+  line-height: 1.8;
+  color: #666666;
+  margin-bottom: 12px;
+}
+
+.brand-info-block strong {
+  font-weight: 500;
+  color: #111111;
+}
+
+.brand-info-highlight {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #111111;
+  border-bottom: 1px solid #111111;
+  padding-bottom: 2px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .info-buttons-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-video-section {
+    height: 40vh;
+    min-height: 220px;
+  }
+  .hero-video-text h2 {
+    font-size: 0.85rem;
+    letter-spacing: 0.25em;
+  }
+  .info-buttons-section {
+    padding: 32px 16px;
+  }
+  .info-buttons-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .info-btn {
+    padding: 16px 8px;
+  }
+  .brand-info-section {
+    padding: 48px 16px;
+  }
+  .brand-info-inner {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
+@media (max-width: 414px) {
+  .hero-video-section {
+    height: 35vh;
+    min-height: 200px;
+  }
+  .info-buttons-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .info-btn-text {
+    font-size: 0.6rem;
+  }
+}

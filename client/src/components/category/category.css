@@ -1,0 +1,175 @@
+﻿.category-hero-video {
+  width: 100%;
+  height: 35vh;
+  min-height: 250px;
+  background: #111;
+  position: relative;
+}
+
+.category-hero-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.breadcrumbs {
+  padding: 16px 24px;
+  font-size: 0.75rem;
+  color: #666;
+  border-bottom: 1px solid #F2F2F2;
+}
+
+.breadcrumbs span {
+  margin: 0 8px;
+  color: #CCC;
+}
+
+.breadcrumbs strong {
+  color: #111;
+  font-weight: 600;
+}
+
+.category-layout {
+  display: flex;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  gap: 40px;
+}
+
+/* Sidebar Filters */
+.category-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+}
+
+.filter-section {
+  margin-bottom: 32px;
+}
+
+.filter-section h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.filter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #444;
+  cursor: pointer;
+}
+
+.filter-item input[type="radio"] {
+  accent-color: #111;
+}
+
+/* Size Grid */
+.size-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.size-box {
+  border: 1px solid #E0E0E0;
+  padding: 8px 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #333;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.size-box:hover {
+  border-color: #111;
+}
+
+/* Main Content */
+.category-content {
+  flex: 1;
+}
+
+.content-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.sort-dropdown {
+  padding: 6px 12px;
+  border: 1px solid #E0E0E0;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: #111;
+  outline: none;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 48px;
+}
+
+.page-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #E0E0E0;
+  background: #FFF;
+  color: #333;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.page-btn.active {
+  background: #111;
+  color: #FFF;
+  border-color: #111;
+}
+
+@media (max-width: 1024px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .category-layout {
+    flex-direction: column;
+    padding: 16px;
+  }
+  .category-sidebar {
+    display: none; /* Mobile pe filter button banayenge baad mein */
+  }
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .category-hero-video {
+    height: 25vh;
+  }
+}

@@ -1,10 +1,21 @@
 ﻿const mongoose = require('mongoose')
+const dns = require('dns')
 const Admin = require('../models/Admin')
 
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4'])
+} catch (e) {}
+
 const connectDB = async function () {
+  const uri = process.env.MONGO_URI
+  if (!uri) {
+    console.warn('MONGO_URI Environment Variable is missing!')
+    return
+  }
+  
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000
+    const conn = await mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 10000
     })
     console.log('=================================')
     console.log('MongoDB Atlas Connected Successfully!')
@@ -24,7 +35,6 @@ const connectDB = async function () {
   } catch (error) {
     console.warn('=================================')
     console.warn('MongoDB Connection Warning: ' + error.message)
-    console.warn('Server is running. Update MONGO_URI in server/.env when cluster is ready.')
     console.warn('=================================')
   }
 }

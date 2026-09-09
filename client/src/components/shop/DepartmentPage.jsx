@@ -1,8 +1,10 @@
-﻿import { useParams, Link } from 'react-router-dom'
+﻿import { useState, useEffect } from 'react'
+import { useParams, Link } from 'react-router-dom'
+import { API_BASE_URL } from '../../utils/api'
 import './shop.css'
-import '../category/category.css' 
+import '../category/category.css'
 
-var testVideo = 'https://videos.pexels.com/video-files/4434241/4434241-hd_1920_1080_30fps.mp4'
+var defaultVideo = 'https://videos.pexels.com/video-files/4434241/4434241-hd_1920_1080_30fps.mp4'
 
 var departmentCats = {
   'mens': ['Jeans', 'Casual Shirts', 'Tank Tops', 'Trousers', 'Jackets', 'Shoes', 'Belts', 'Studs', 'Ties'],
@@ -13,17 +15,32 @@ var departmentCats = {
 
 function DepartmentPage() {
   var params = useParams()
-  var dept = params.department
+  var dept = params.department || 'mens'
   var categories = departmentCats[dept] || ['All Items']
   
   var deptName = dept.replace('-', ' ').toUpperCase()
   var isPremium = dept === 'premium-lounge'
+  
+  var [videoUrl, setVideoUrl] = useState(defaultVideo)
+
+  useEffect(function() {
+    fetch(API_BASE_URL + '/api/videos/' + dept)
+      .then(function(res) { return res.json() })
+      .then(function(data) {
+        if (data.success && data.video && data.video.videoUrl) {
+          var url = data.video.videoUrl
+          if (url.startsWith('/uploads')) url = API_BASE_URL + url
+          setVideoUrl(url)
+        }
+      })
+      .catch(function() {})
+  }, [dept])
 
   return (
     <div style={isPremium ? { background: '#0a0a0a', color: '#FFF', minHeight: '100vh' } : {}}>
       <section className="category-hero-video">
-        <video autoPlay muted loop playsInline preload="metadata">
-          <source src={testVideo} type="video/mp4" />
+        <video key={videoUrl} autoPlay muted loop playsInline preload="auto">
+          <source src={videoUrl} type="video/mp4" />
         </video>
       </section>
 
@@ -35,7 +52,7 @@ function DepartmentPage() {
         <h2 style={isPremium ? { color: '#D4AF37' } : {}}>Select Category</h2>
         <div className="dept-cat-grid">
           {categories.map(function(cat, index) {
-            var catSlug = cat.toLowerCase().replace(' ', '-')
+            var catSlug = cat.toLowerCase().replace(/ /g, '-')
             return (
               <Link 
                 key={index} 

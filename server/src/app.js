@@ -11,7 +11,7 @@ const videoRoutes = require('./routes/videoRoutes')
 
 const app = express()
 
-// Auto-create upload directories on startup
+// Auto-create upload directories
 const videoUploadDir = path.join(__dirname, '../uploads/videos')
 const imageUploadDir = path.join(__dirname, '../uploads/images')
 if (!fs.existsSync(videoUploadDir)) fs.mkdirSync(videoUploadDir, { recursive: true })
@@ -23,8 +23,12 @@ app.use(morgan('dev'))
 app.use(express.json({ limit: '100mb' }))
 app.use(express.urlencoded({ extended: true, limit: '100mb' }))
 
-// Serve static video & image uploads
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
+// Serve static uploads with explicit CORS and Video Range Headers
+app.use('/uploads', function (req, res, next) {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+  next()
+}, express.static(path.join(__dirname, '../uploads')))
 
 app.get('/api/health', function (req, res) {
   res.status(200).json({

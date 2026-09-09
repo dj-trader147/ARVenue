@@ -1,9 +1,25 @@
-import { useState } from 'react'
+﻿import { useState, useEffect } from 'react'
+import { API_BASE_URL } from '../../utils/api'
 
 function HeroVideo() {
+  var [videoUrl, setVideoUrl] = useState('https://videos.pexels.com/video-files/4434241/4434241-hd_1920_1080_30fps.mp4')
   var [videoError, setVideoError] = useState(false)
 
-  var testVideoUrl = 'https://videos.pexels.com/video-files/4434241/4434241-hd_1920_1080_30fps.mp4'
+  useEffect(function() {
+    // Fetch custom landing video from backend database
+    fetch(API_BASE_URL + '/api/videos/landing')
+      .then(function(res) { return res.json() })
+      .then(function(data) {
+        if (data.success && data.video && data.video.videoUrl) {
+          var url = data.video.videoUrl
+          if (url.startsWith('/uploads')) {
+            url = API_BASE_URL + url
+          }
+          setVideoUrl(url)
+        }
+      })
+      .catch(function() {})
+  }, [])
 
   if (videoError) {
     return (
@@ -21,6 +37,7 @@ function HeroVideo() {
   return (
     <section className="hero-video-section">
       <video
+        key={videoUrl}
         autoPlay
         muted
         loop
@@ -28,12 +45,12 @@ function HeroVideo() {
         preload="metadata"
         onError={function() { setVideoError(true) }}
       >
-        <source src={testVideoUrl} type="video/mp4" />
+        <source src={videoUrl} type="video/mp4" />
       </video>
       <div className="hero-video-overlay">
         <div className="hero-video-text">
           <h2>New Collection</h2>
-          <p>Autumn / Winter 2025</p>
+          <p>Autumn / Winter 2026</p>
         </div>
       </div>
     </section>

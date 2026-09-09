@@ -3,12 +3,19 @@ const cors = require('cors')
 const helmet = require('helmet')
 const morgan = require('morgan')
 const path = require('path')
+const fs = require('fs')
 
 const authRoutes = require('./routes/authRoutes')
 const orderRoutes = require('./routes/orderRoutes')
 const videoRoutes = require('./routes/videoRoutes')
 
 const app = express()
+
+// Auto-create upload directories on startup
+const videoUploadDir = path.join(__dirname, '../uploads/videos')
+const imageUploadDir = path.join(__dirname, '../uploads/images')
+if (!fs.existsSync(videoUploadDir)) fs.mkdirSync(videoUploadDir, { recursive: true })
+if (!fs.existsSync(imageUploadDir)) fs.mkdirSync(imageUploadDir, { recursive: true })
 
 app.use(helmet({ crossOriginResourcePolicy: false }))
 app.use(cors({ origin: '*', credentials: true }))

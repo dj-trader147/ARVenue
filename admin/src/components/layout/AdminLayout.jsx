@@ -1,4 +1,4 @@
-﻿import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import './adminlayout.css'
 
@@ -14,15 +14,16 @@ function AdminLayout() {
   return (
     <div className="admin-shell">
       <aside className="admin-sidebar">
-        <div className="sidebar-header">
+        <Link to="/" className="sidebar-header" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <img src="/logo.png" alt="AR VENUE" />
           <span>Control Center</span>
-        </div>
+        </Link>
         <nav className="sidebar-nav">
           <NavLink to="/" end className={function(nav) { return 'sidebar-link' + (nav.isActive ? ' active' : '') }}>Dashboard</NavLink>
           <NavLink to="/orders" className={function(nav) { return 'sidebar-link' + (nav.isActive ? ' active' : '') }}>Orders</NavLink>
           <NavLink to="/products" className={function(nav) { return 'sidebar-link' + (nav.isActive ? ' active' : '') }}>Products Upload</NavLink>
           <NavLink to="/videos" className={function(nav) { return 'sidebar-link' + (nav.isActive ? ' active' : '') }}>Video Manager</NavLink>
+          <NavLink to="/settings" className={function(nav) { return 'sidebar-link' + (nav.isActive ? ' active' : '') }}>Control Settings</NavLink>
         </nav>
       </aside>
 
@@ -45,4 +46,4 @@ function AdminLayout() {
   )
 }
 
-export default AdminLayout
+export default AdminLayout;

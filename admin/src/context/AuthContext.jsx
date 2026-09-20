@@ -1,4 +1,4 @@
-﻿import { createContext, useState, useContext, useEffect } from 'react'
+import { createContext, useState, useContext, useEffect } from 'react'
 
 var AuthContext = createContext()
 
@@ -9,7 +9,6 @@ export function AuthProvider(props) {
 
   useEffect(function() {
     if (token) {
-      // Demo Session or Token Verify
       setAdmin({
         name: 'Ahsan Rajpoot',
         email: 'arvenue0300@gmail.com',
@@ -20,7 +19,9 @@ export function AuthProvider(props) {
   }, [token])
 
   function login(email, password) {
-    if (email.toLowerCase() === 'arvenue0300@gmail.com' && password === 'admin123456') {
+    var savedPassword = localStorage.getItem('ar_venue_admin_pass') || 'admin123456';
+    
+    if (email.toLowerCase() === 'arvenue0300@gmail.com' && password === savedPassword) {
       var fakeToken = 'arvenue_jwt_token_demo_2026'
       localStorage.setItem('arvenue_admin_token', fakeToken)
       setToken(fakeToken)
@@ -35,6 +36,15 @@ export function AuthProvider(props) {
     }
   }
 
+  function changePassword(currentPass, newPass) {
+    var savedPassword = localStorage.getItem('ar_venue_admin_pass') || 'admin123456';
+    if (currentPass !== savedPassword) {
+      return { success: false, message: 'Current password is incorrect' };
+    }
+    localStorage.setItem('ar_venue_admin_pass', newPass);
+    return { success: true };
+  }
+
   function logout() {
     localStorage.removeItem('arvenue_admin_token')
     setToken('')
@@ -42,7 +52,7 @@ export function AuthProvider(props) {
   }
 
   return (
-    <AuthContext.Provider value={{ admin, token, loading, login, logout }}>
+    <AuthContext.Provider value={{ admin, token, loading, login, changePassword, logout }}>
       {props.children}
     </AuthContext.Provider>
   )

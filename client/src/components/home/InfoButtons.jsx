@@ -6,7 +6,7 @@ var infoData = [
   { icon: '\uD83D\uDD04', text: 'Easy 7-Day Returns', link: '/refund-policy', external: false },
   { icon: '\u2728', text: 'Premium Quality Guaranteed', link: '/about', external: false },
   { icon: '\uD83C\uDF81', text: 'Luxury Packaging', link: '/about', external: false },
-  { icon: '\uD83D\uDCCD', text: 'Farooqabad Store Outlet', link: '/contact', external: false },
+  { icon: '\uD83D\uDCCD', text: 'Farooqabad Store Outlet', link: 'https://share.google/QO2dGFh2pAiZ3RoHu', external: true },
   { icon: '\uD83D\uDEE1\uFE0F', text: '100% Original Products', link: '/about', external: false },
   { icon: '\uD83D\uDCF1', text: 'Order Via WhatsApp', link: 'https://wa.me/923057192862', external: true }
 ]

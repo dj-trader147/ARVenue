@@ -1,6 +1,44 @@
-﻿import './staticpages.css'
+import { useState } from 'react'
+import './staticpages.css'
 
 function Contact() {
+  var [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  })
+
+  function handleChange(e) {
+    setFormData({ ...formData, [e.target.name]: e.target.value })
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault()
+
+    // 100% Safe array join for layout spacing - avoids literal newline encoding issues
+    var lines = [
+      "💬 *NEW CONTACT INQUIRY - AR VENUE*",
+      "----------------------------------------",
+      "",
+      "👤 *Name:* " + formData.name,
+      "📧 *Email:* " + formData.email,
+      "📌 *Subject:* " + formData.subject,
+      "",
+      "📝 *Message:*",
+      formData.message,
+      "",
+      "----------------------------------------"
+    ];
+
+    var formattedText = lines.join("\n");
+    var encodedText = encodeURIComponent(formattedText);
+    var whatsappUrl = "https://wa.me/923057192862?text=" + encodedText;
+
+    // Automatically redirects to WhatsApp Web or App
+    window.open(whatsappUrl, '_blank');
+  }
+
   return (
     <div className="static-page" style={{maxWidth: '1000px'}}>
       <h1>Contact Us</h1>
@@ -58,11 +96,39 @@ function Contact() {
           </div>
         </div>
 
-        <form className="contact-form" onSubmit={function(e) { e.preventDefault(); alert('Thank you for contacting AR VENUE. We will respond shortly.'); }}>
-          <input type="text" placeholder="Your Name" required />
-          <input type="email" placeholder="Your Email" required />
-          <input type="text" placeholder="Subject" required />
-          <textarea rows="6" placeholder="Your Message..." required></textarea>
+        <form className="contact-form" onSubmit={handleSubmit}>
+          <input 
+            type="text" 
+            name="name" 
+            placeholder="Your Name" 
+            required 
+            value={formData.name}
+            onChange={handleChange}
+          />
+          <input 
+            type="email" 
+            name="email" 
+            placeholder="Your Email" 
+            required 
+            value={formData.email}
+            onChange={handleChange}
+          />
+          <input 
+            type="text" 
+            name="subject" 
+            placeholder="Subject" 
+            required 
+            value={formData.subject}
+            onChange={handleChange}
+          />
+          <textarea 
+            name="message" 
+            rows="6" 
+            placeholder="Your Message..." 
+            required 
+            value={formData.message}
+            onChange={handleChange}
+          ></textarea>
           <button type="submit" className="contact-btn">Send Message</button>
         </form>
       </div>
@@ -70,4 +136,4 @@ function Contact() {
   )
 }
 
-export default Contact
+export default Contact;

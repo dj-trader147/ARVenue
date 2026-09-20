@@ -15,7 +15,7 @@ function BrandInfo() {
             Every article undergoes strict quality control before reaching our shelves, ensuring you receive nothing but the finest. 
             Our dedicated team led by <strong>Ahsan Rajpoot</strong> is always available to assist you in creating your perfect wardrobe.
           </p>
-          <Link to="/contact" className="brand-info-highlight">Visit Us in Farooqabad</Link>
+          <a href="https://share.google/QO2dGFh2pAiZ3RoHu" target="_blank" rel="noopener noreferrer" className="brand-info-highlight">Visit Us in Farooqabad</a>
         </div>
 
         <div className="brand-info-block">

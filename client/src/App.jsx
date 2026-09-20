@@ -18,7 +18,7 @@ import FAQ from './pages/FAQ'
 import { Terms, Privacy, RefundPolicy, Shipping } from './pages/PolicyPages'
 
 function Placeholder(props) { return (<div className="page-placeholder"><h1>{props.title}</h1><p>Coming soon</p></div>) }
-function Home() { return ( <><HeroVideo /><InfoButtons /><BrandInfo /></> ) }
+function Home() { return ( <><HeroVideo /><InfoButtons /><ShopCollections /><BrandInfo /></> ) }
 
 function App() {
   return (

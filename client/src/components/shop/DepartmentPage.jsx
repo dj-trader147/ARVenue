@@ -7,10 +7,36 @@ import '../category/category.css'
 var defaultVideo = 'https://videos.pexels.com/video-files/4434241/4434241-hd_1920_1080_30fps.mp4'
 
 var departmentCats = {
-  'mens': ['Jeans', 'Casual Shirts', 'Tank Tops', 'Trousers', 'Jackets', 'Shoes', 'Belts', 'Studs', 'Ties'],
-  'womens': ['Dresses', 'Tops', 'Jeans', 'Cosmetics', 'Jewelry', 'Shoes', 'Bags', 'Accessories'],
-  'kids': ['Shirts', 'Jeans', 'Shoes', 'Sandals', 'Slippers', 'Jackets', 'Accessories'],
-  'premium-lounge': ['Exclusive Suits', 'Luxury Watches', 'Designer Shoes', 'Limited Edition Bags']
+  'mens': [
+    'Slippers',
+    'Fabrics',
+    'Bags',
+    'Perfumes',
+    'Jeans',
+    'Trousers',
+    'Shirts'
+  ],
+  'womens': [
+    'Slippers',
+    'Fabrics',
+    'Bags',
+    'Perfumes',
+    'Jeans',
+    'Trousers',
+    'Shirts'
+  ],
+  'kids': [
+    'Slippers',
+    'Jeans',
+    'Trousers',
+    'Shirts'
+  ],
+  'premium-lounge': [
+    'Exclusive Suits',
+    'Luxury Watches',
+    'Designer Shoes',
+    'Limited Edition Bags'
+  ]
 }
 
 function DepartmentPage() {

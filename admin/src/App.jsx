@@ -1,4 +1,4 @@
-﻿import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import AdminLayout from './components/layout/AdminLayout'
 import Login from './pages/Login'
@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import Orders from './pages/Orders'
 import Products from './pages/Products'
 import Videos from './pages/Videos'
+import Settings from './pages/Settings'
 
 function ProtectedRoute(props) {
   var auth = useAuth()
@@ -23,9 +24,11 @@ function App() {
         <Route path="/orders" element={<Orders />} />
         <Route path="/products" element={<Products />} />
         <Route path="/videos" element={<Videos />} />
+        <Route path="/settings" element={<Settings />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }
-export default App
+
+export default App;

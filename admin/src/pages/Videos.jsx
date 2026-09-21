@@ -1,17 +1,17 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { API_BASE_URL } from '../utils/api'
 
 var departmentCategories = {
-  'mens': ['Jeans', 'Casual Shirts', 'Tank Tops', 'Trousers', 'Jackets', 'Shoes', 'Belts', 'Studs', 'Ties'],
-  'womens': ['Dresses', 'Tops', 'Jeans', 'Cosmetics', 'Jewelry', 'Shoes', 'Bags', 'Accessories'],
-  'kids': ['Shirts', 'Jeans', 'Shoes', 'Sandals', 'Slippers', 'Jackets', 'Accessories'],
+  'mens': ['Slippers', 'Fabrics', 'Bags', 'Perfumes', 'Jeans', 'Trousers', 'Shirts'],
+  'womens': ['Slippers', 'Fabrics', 'Bags', 'Perfumes', 'Jeans', 'Trousers', 'Shirts'],
+  'kids': ['Slippers', 'Jeans', 'Trousers', 'Shirts'],
   'premium-lounge': ['Exclusive Suits', 'Luxury Watches', 'Designer Shoes', 'Limited Edition Bags']
 }
 
 function Videos() {
   var [pageType, setPageType] = useState('landing')
   var [dept, setDept] = useState('mens')
-  var [category, setCategory] = useState('Jeans')
+  var [category, setCategory] = useState('Slippers')
   var [videoFile, setVideoFile] = useState(null)
   var [videoUrlInput, setVideoUrlInput] = useState('')
   var [uploading, setUploading] = useState(false)
@@ -20,7 +20,6 @@ function Videos() {
     e.preventDefault()
     setUploading(true)
 
-    // Calculate location slug
     var targetLocation = pageType
     if (pageType === 'department') targetLocation = dept
     if (pageType === 'category') targetLocation = dept + '-' + category.toLowerCase().replace(/ /g, '-')
@@ -59,11 +58,14 @@ function Videos() {
     <div>
       <h1 style={{ fontSize: '1.5rem', fontWeight: 400, marginBottom: '24px', color: '#111' }}>Page Video Manager</h1>
 
-      <div className="admin-card" style={{ maxWidth: '700px' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '16px' }}>Upload Video for Specific Page</h3>
-        <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '24px' }}>
-          Choose where you want the video to appear. Uploading will replace the existing video on that live page.
-        </p>
+      <div className="admin-card" style={{ maxWidth: '750px', background: '#FFF', border: '1px solid #E5E5E5', padding: '24px' }}>
+        <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px' }}>Upload Video for Specific Page</h3>
+        
+        {/* Production Cloud Persistence Alert */}
+        <div style={{ background: '#FFF3CD', border: '1px solid #FFE69C', color: '#664D03', padding: '16px', borderRadius: '4px', fontSize: '0.85rem', lineHeight: '1.5', marginBottom: '24px' }}>
+          ⚠️ <strong>PRODUCTION DEPLOYMENT NOTICE:</strong><br/>
+          Free web services (Render) reset local directories on routine reboots. For permanent 100% stable videos, we highly recommend using <strong>Option B (Direct MP4 URL)</strong> with links from Pexels, Cloudinary or stable hosting. This guarantees video never disappears!
+        </div>
 
         <form onSubmit={handleUpload} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
@@ -72,7 +74,7 @@ function Videos() {
             <select value={pageType} onChange={function(e) { setPageType(e.target.value) }} style={{ width: '100%', padding: '12px', border: '1px solid #CCC', borderRadius: '4px' }}>
               <option value="landing">Main Home Landing Page (Hero Video)</option>
               <option value="department">Department Page (Mens, Womens, Kids, Premium)</option>
-              <option value="category">Specific Category Page (Jeans, Shoes, etc.)</option>
+              <option value="category">Specific Category Page</option>
             </select>
           </div>
 
@@ -92,7 +94,7 @@ function Videos() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Department</label>
-                <select value={dept} onChange={function(e) { setDept(e.target.value) }} style={{ width: '100%', padding: '12px', border: '1px solid #CCC', borderRadius: '4px' }}>
+                <select value={dept} onChange={function(e) { setDept(e.target.value); setCategory(departmentCategories[e.target.value][0]); }} style={{ width: '100%', padding: '12px', border: '1px solid #CCC', borderRadius: '4px' }}>
                   <option value="mens">Mens Collection</option>
                   <option value="womens">Womens Collection</option>
                   <option value="kids">Kids Collection</option>
@@ -112,14 +114,14 @@ function Videos() {
 
           <div style={{ padding: '24px', background: '#F9FAFB', border: '2px dashed #CCC', borderRadius: '4px', textAlign: 'center' }}>
             <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, marginBottom: '12px', cursor: 'pointer' }}>
-              Option A: Upload MP4 Video File
+              Option A: Upload MP4 Video File (Local temporary cache)
             </label>
             <input type="file" accept="video/mp4" onChange={function(e) { setVideoFile(e.target.files[0]) }} style={{ display: 'block', margin: '0 auto 16px' }} />
 
             <div style={{ margin: '16px 0', color: '#999', fontSize: '0.8rem' }}>&mdash; OR &mdash;</div>
 
             <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '8px' }}>
-              Option B: Paste Direct MP4 Video URL
+              Option B: Paste Direct MP4 Video URL (Recommended - 100% Stable)
             </label>
             <input
               type="url"
@@ -131,7 +133,7 @@ function Videos() {
           </div>
 
           <button type="submit" disabled={uploading} style={{ padding: '16px', background: '#111', color: '#FFF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: '4px' }}>
-            {uploading ? 'Uploading Video to Live Website...' : 'Upload & Apply to Website'}
+            {uploading ? 'Applying to Live Website...' : 'Upload & Apply Video'}
           </button>
         </form>
       </div>
@@ -139,4 +141,4 @@ function Videos() {
   )
 }
 
-export default Videos
+export default Videos;

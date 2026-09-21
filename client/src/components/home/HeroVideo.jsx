@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { API_BASE_URL } from '../../utils/api'
 
 function HeroVideo() {
-  var defaultVideo = 'https://videos.pexels.com/video-files/4434241/4434241-hd_1920_1080_30fps.mp4'
+  // Ultra-crisp luxury fashion demo video
+  var defaultVideo = 'https://assets.mixkit.co/videos/40893/40893-720.mp4'
   var [videoUrl, setVideoUrl] = useState(defaultVideo)
 
   useEffect(function() {
@@ -21,14 +22,16 @@ function HeroVideo() {
   }, [])
 
   return (
-    <section className="hero-video-section" style={{ background: '#0a0a0a' }}>
+    <section className="hero-video-section" style={{ background: '#0a0a0a', width: '100%', overflow: 'hidden' }}>
       <video
         key={videoUrl}
         autoPlay
         muted
         loop
         playsInline
+        webkit-playsinline="true"
         preload="auto"
+        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center' }}
       >
         <source src={videoUrl} type="video/mp4" />
       </video>

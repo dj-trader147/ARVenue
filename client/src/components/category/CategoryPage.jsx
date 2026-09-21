@@ -1,10 +1,11 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
+import { API_BASE_URL } from '../../utils/api'
 import ProductCard from '../product/ProductCard'
 import './category.css'
 
-var testVideo = 'https://videos.pexels.com/video-files/4434241/4434241-hd_1920_1080_30fps.mp4'
-// Professional Size Configuration per Department + Category
+var FALLBACK_VIDEO = 'https://assets.mixkit.co/videos/41551/41551-720.mp4'
+
 var sizeConfig = {
   'mens': {
     'slippers': ['40', '41', '42', '43', '44', '45'],
@@ -36,11 +37,8 @@ var sizeConfig = {
     'premium-slippers': ['40', '41', '42', '43', '44', '45'],
     'limited-edition-bags': []
   }
-};
+}
 
-
-
-// 12 Products banaye hain taake Pagination (Page 1, 2) check ho sake
 var allDummyProducts = [
   { slug: 'prod-1', name: 'Classic Urban Article 1', price: 1200, style: 'Casual', colors: ['#111', '#CCC'] },
   { slug: 'prod-2', name: 'Premium Edition Article 2', price: 4500, style: 'Exclusive', colors: ['#333'] },
@@ -61,32 +59,59 @@ function CategoryPage() {
   var dept = params.department ? params.department.replace('-', ' ') : 'Shop'
   var catName = params.category ? params.category.replace('-', ' ') : 'All Items'
   
-  // State for Filters, Sorting, and Pagination
   var [activeStyle, setActiveStyle] = useState('All')
   var [sortOrder, setSortOrder] = useState('popular')
   var [currentPage, setCurrentPage] = useState(1)
+  var [videoUrl, setVideoUrl] = useState(FALLBACK_VIDEO)
   
   var itemsPerPage = 6
 
-  // Reset page to 1 if filter or sort changes
+  useEffect(function() {
+    var isMounted = true
+    var locationKey = (params.department || 'mens') + '-' + (params.category || 'slippers')
+    
+    fetch(API_BASE_URL + '/api/videos/' + locationKey)
+      .then(function(res) {
+        if (!res.ok) throw new Error('Failed')
+        return res.json()
+      })
+      .then(function(data) {
+        if (isMounted && data.success && data.video && data.video.videoUrl) {
+          var url = data.video.videoUrl
+          if (url.startsWith('/')) url = API_BASE_URL + url
+          setVideoUrl(url)
+        }
+      })
+      .catch(function() {
+        if (isMounted) setVideoUrl(FALLBACK_VIDEO)
+      })
+
+    return function() {
+      isMounted = false
+    }
+  }, [params.department, params.category])
+
   useEffect(function() {
     setCurrentPage(1)
   }, [activeStyle, sortOrder])
 
-  // 1. FILTERING LOGIC
+  function handleVideoError() {
+    if (videoUrl !== FALLBACK_VIDEO) {
+      setVideoUrl(FALLBACK_VIDEO)
+    }
+  }
+
   var filteredProducts = allDummyProducts.filter(function(product) {
     if (activeStyle === 'All') return true
     return product.style === activeStyle
   })
 
-  // 2. SORTING LOGIC
   var sortedProducts = [...filteredProducts].sort(function(a, b) {
     if (sortOrder === 'price-low') return a.price - b.price
     if (sortOrder === 'price-high') return b.price - a.price
-    return 0 // popular (default array order)
+    return 0
   })
 
-  // 3. PAGINATION LOGIC
   var totalItems = sortedProducts.length
   var totalPages = Math.ceil(totalItems / itemsPerPage)
   var startIndex = (currentPage - 1) * itemsPerPage
@@ -95,8 +120,17 @@ function CategoryPage() {
   return (
     <>
       <section className="category-hero-video">
-        <video autoPlay muted loop playsInline preload="metadata">
-          <source src={testVideo} type="video/mp4" />
+        <video 
+          key={videoUrl}
+          autoPlay 
+          muted 
+          loop 
+          playsInline 
+          webkit-playsinline="true"
+          preload="auto"
+          onError={handleVideoError}
+        >
+          <source src={videoUrl} type="video/mp4" />
         </video>
       </section>
 
@@ -109,7 +143,7 @@ function CategoryPage() {
           <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '24px' }}>FILTERS</h3>
 
           <div className="filter-section">
-            <h4>Style </h4>
+            <h4>Style</h4>
             <div className="filter-list">
               <label className="filter-item">
                 <input type="radio" name="style" checked={activeStyle === 'All'} onChange={function() { setActiveStyle('All') }} /> All

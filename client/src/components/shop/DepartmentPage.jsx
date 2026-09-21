@@ -1,10 +1,10 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { API_BASE_URL } from '../../utils/api'
 import './shop.css'
 import '../category/category.css'
 
-var defaultVideo = 'https://videos.pexels.com/video-files/4434241/4434241-hd_1920_1080_30fps.mp4'
+var FALLBACK_VIDEO = 'https://assets.mixkit.co/videos/41551/41551-720.mp4'
 
 var departmentCats = {
   'mens': [
@@ -47,25 +47,50 @@ function DepartmentPage() {
   var deptName = dept.replace('-', ' ').toUpperCase()
   var isPremium = dept === 'premium-lounge'
   
-  var [videoUrl, setVideoUrl] = useState(defaultVideo)
+  var [videoUrl, setVideoUrl] = useState(FALLBACK_VIDEO)
 
   useEffect(function() {
+    var isMounted = true
     fetch(API_BASE_URL + '/api/videos/' + dept)
-      .then(function(res) { return res.json() })
+      .then(function(res) { 
+        if (!res.ok) throw new Error('Failed')
+        return res.json() 
+      })
       .then(function(data) {
-        if (data.success && data.video && data.video.videoUrl) {
+        if (isMounted && data.success && data.video && data.video.videoUrl) {
           var url = data.video.videoUrl
-          if (url.startsWith('/uploads')) url = API_BASE_URL + url
+          if (url.startsWith('/')) url = API_BASE_URL + url
           setVideoUrl(url)
         }
       })
-      .catch(function() {})
+      .catch(function() {
+        if (isMounted) setVideoUrl(FALLBACK_VIDEO)
+      })
+
+    return function() {
+      isMounted = false
+    }
   }, [dept])
+
+  function handleVideoError() {
+    if (videoUrl !== FALLBACK_VIDEO) {
+      setVideoUrl(FALLBACK_VIDEO)
+    }
+  }
 
   return (
     <div style={isPremium ? { background: '#0a0a0a', color: '#FFF', minHeight: '100vh' } : {}}>
       <section className="category-hero-video">
-        <video key={videoUrl} autoPlay muted loop playsInline preload="auto">
+        <video 
+          key={videoUrl} 
+          autoPlay 
+          muted 
+          loop 
+          playsInline 
+          webkit-playsinline="true"
+          preload="auto"
+          onError={handleVideoError}
+        >
           <source src={videoUrl} type="video/mp4" />
         </video>
       </section>

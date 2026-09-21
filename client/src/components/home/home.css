@@ -217,3 +217,16 @@
     font-size: 0.6rem;
   }
 }
+
+@media (max-width: 768px) {
+  .hero-video-section {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    aspect-ratio: 16/9; /* Forces the video container to match the exact shape of landscape video */
+  }
+  .hero-video-section video {
+    object-fit: cover !important;
+    object-position: center center;
+  }
+}

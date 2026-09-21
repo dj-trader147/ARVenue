@@ -4,6 +4,41 @@ import ProductCard from '../product/ProductCard'
 import './category.css'
 
 var testVideo = 'https://videos.pexels.com/video-files/4434241/4434241-hd_1920_1080_30fps.mp4'
+// Professional Size Configuration per Department + Category
+var sizeConfig = {
+  'mens': {
+    'slippers': ['40', '41', '42', '43', '44', '45'],
+    'fabrics': [],
+    'bags': [],
+    'perfumes': [],
+    'jeans': ['28', '30', '32', '34', '36', '38'],
+    'trousers': ['28', '30', '32', '34', '36', '38'],
+    'shirts': ['S', 'M', 'L', 'XL', 'XXL']
+  },
+  'womens': {
+    'slippers': ['36', '37', '38', '39', '40'],
+    'fabrics': [],
+    'bags': [],
+    'perfumes': [],
+    'jeans': ['24', '26', '28', '30', '32'],
+    'trousers': ['24', '26', '28', '30', '32'],
+    'shirts': ['XS', 'S', 'M', 'L', 'XL']
+  },
+  'kids': {
+    'slippers': ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13'],
+    'jeans': ['2-3Y', '4-5Y', '6-7Y', '8-9Y', '10-11Y', '12-13Y'],
+    'trousers': ['2-3Y', '4-5Y', '6-7Y', '8-9Y', '10-11Y', '12-13Y'],
+    'shirts': ['2-3Y', '4-5Y', '6-7Y', '8-9Y', '10-11Y', '12-13Y']
+  },
+  'premium-lounge': {
+    'exclusive-suits': ['S', 'M', 'L', 'XL', 'XXL'],
+    'luxury-perfumes': [],
+    'premium-slippers': ['40', '41', '42', '43', '44', '45'],
+    'limited-edition-bags': []
+  }
+};
+
+
 
 // 12 Products banaye hain taake Pagination (Page 1, 2) check ho sake
 var allDummyProducts = [
@@ -91,15 +126,22 @@ function CategoryPage() {
             </div>
           </div>
 
-          <div className="filter-section">
-            <h4>Size</h4>
-            <div className="size-grid">
-              <div className="size-box">S</div>
-              <div className="size-box">M</div>
-              <div className="size-box">L</div>
-              <div className="size-box">XL</div>
-            </div>
-          </div>
+          {(function() {
+            var deptKey = params.department || 'mens';
+            var catKey = params.category || '';
+            var sizes = (sizeConfig[deptKey] && sizeConfig[deptKey][catKey]) ? sizeConfig[deptKey][catKey] : [];
+            if (sizes.length === 0) return null;
+            return (
+              <div className="filter-section">
+                <h4>Size</h4>
+                <div className="size-grid">
+                  {sizes.map(function(s) {
+                    return <div key={s} className="size-box">{s}</div>
+                  })}
+                </div>
+              </div>
+            );
+          })()}
         </aside>
 
         <div className="category-content">

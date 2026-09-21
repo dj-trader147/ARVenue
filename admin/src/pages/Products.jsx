@@ -2,10 +2,39 @@
 
 // Yeh exactly wahi categories hain jo customer website par hain
 var departmentCategories = {
-  'mens': ['Jeans', 'Casual Shirts', 'Tank Tops', 'Trousers', 'Jackets', 'Shoes', 'Belts', 'Studs', 'Ties'],
-  'womens': ['Dresses', 'Tops', 'Jeans', 'Cosmetics', 'Jewelry', 'Shoes', 'Bags', 'Accessories'],
-  'kids': ['Shirts', 'Jeans', 'Shoes', 'Sandals', 'Slippers', 'Jackets', 'Accessories'],
-  'premium-lounge': ['Exclusive Suits', 'Luxury Watches', 'Designer Shoes', 'Limited Edition Bags']
+  'mens': ['Slippers', 'Fabrics', 'Bags', 'Perfumes', 'Jeans', 'Trousers', 'Shirts'],
+  'womens': ['Slippers', 'Fabrics', 'Bags', 'Perfumes', 'Jeans', 'Trousers', 'Shirts'],
+  'kids': ['Slippers', 'Jeans', 'Trousers', 'Shirts'],
+  'premium-lounge': ['Exclusive Suits', 'Luxury Perfumes', 'Premium Slippers', 'Limited Edition Bags']
+}
+
+var adminSizeConfig = {
+  'mens': {
+    'Slippers': ['40','41','42','43','44','45'],
+    'Fabrics': [], 'Bags': [], 'Perfumes': [],
+    'Jeans': ['28','30','32','34','36','38'],
+    'Trousers': ['28','30','32','34','36','38'],
+    'Shirts': ['S','M','L','XL','XXL']
+  },
+  'womens': {
+    'Slippers': ['36','37','38','39','40'],
+    'Fabrics': [], 'Bags': [], 'Perfumes': [],
+    'Jeans': ['24','26','28','30','32'],
+    'Trousers': ['24','26','28','30','32'],
+    'Shirts': ['XS','S','M','L','XL']
+  },
+  'kids': {
+    'Slippers': ['1','2','3','4','5','6','7','8','9','10','11','12','13'],
+    'Jeans': ['2-3Y','4-5Y','6-7Y','8-9Y','10-11Y','12-13Y'],
+    'Trousers': ['2-3Y','4-5Y','6-7Y','8-9Y','10-11Y','12-13Y'],
+    'Shirts': ['2-3Y','4-5Y','6-7Y','8-9Y','10-11Y','12-13Y']
+  },
+  'premium-lounge': {
+    'Exclusive Suits': ['S','M','L','XL','XXL'],
+    'Luxury Perfumes': [],
+    'Premium Slippers': ['40','41','42','43','44','45'],
+    'Limited Edition Bags': []
+  }
 }
 
 function Products() {
@@ -108,14 +137,19 @@ function Products() {
 
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Available Sizes</label>
-            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><input type="checkbox" defaultChecked /> S</label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><input type="checkbox" defaultChecked /> M</label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><input type="checkbox" defaultChecked /> L</label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><input type="checkbox" defaultChecked /> XL</label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><input type="checkbox" /> XXL</label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><input type="checkbox" /> Free Size</label>
-            </div>
+            {(function() {
+              var sizes = (adminSizeConfig[dept] && adminSizeConfig[dept][category]) ? adminSizeConfig[dept][category] : [];
+              if (sizes.length === 0) {
+                return <p style={{ fontSize: '0.85rem', color: '#999', fontStyle: 'italic' }}>No size required for this category.</p>;
+              }
+              return (
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  {sizes.map(function(s) {
+                    return <label key={s} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}><input type="checkbox" defaultChecked /> {s}</label>
+                  })}
+                </div>
+              );
+            })()}
           </div>
 
           <button type="submit" style={{ padding: '16px', background: '#111', color: '#FFF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: '4px', marginTop: 'auto' }}>

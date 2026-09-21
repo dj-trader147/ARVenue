@@ -33,8 +33,8 @@ var departmentCats = {
   ],
   'premium-lounge': [
     'Exclusive Suits',
-    'Luxury Watches',
-    'Designer Shoes',
+    'Luxury Perfumes',
+    'Premium Slippers',
     'Limited Edition Bags'
   ]
 }

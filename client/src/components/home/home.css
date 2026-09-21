@@ -179,10 +179,7 @@
 }
 
 @media (max-width: 768px) {
-  .hero-video-section {
-    height: 56vh;
-    min-height: 320px;
-  }
+  
   .hero-video-text h2 {
     font-size: 1.5rem;
     letter-spacing: 0.25em;
@@ -207,10 +204,7 @@
 }
 
 @media (max-width: 414px) {
-  .hero-video-section {
-    height: 50vh;
-    min-height: 280px;
-  }
+  
   .hero-video-text h2 {
     font-size: 1.2rem;
     letter-spacing: 0.2em;

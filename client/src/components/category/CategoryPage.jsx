@@ -1,10 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { API_BASE_URL } from '../../utils/api'
 import ProductCard from '../product/ProductCard'
 import './category.css'
-
-var FALLBACK_VIDEO = 'https://assets.mixkit.co/videos/41551/41551-720.mp4'
 
 var sizeConfig = {
   'mens': {
@@ -62,42 +60,63 @@ function CategoryPage() {
   var [activeStyle, setActiveStyle] = useState('All')
   var [sortOrder, setSortOrder] = useState('popular')
   var [currentPage, setCurrentPage] = useState(1)
-  var [videoUrl, setVideoUrl] = useState(FALLBACK_VIDEO)
+  var [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  var [videoUrl, setVideoUrl] = useState('')
+  var videoRef = useRef(null)
   
   var itemsPerPage = 6
 
+  // 1. Screen size detection
+  useEffect(function() {
+    function handleResize() {
+      setIsMobile(window.innerWidth < 768)
+    }
+    window.addEventListener('resize', handleResize)
+    return function() {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [])
+
+  // 2. Fetch Desktop vs Mobile video for this specific category
   useEffect(function() {
     var isMounted = true
-    var locationKey = (params.department || 'mens') + '-' + (params.category || 'slippers')
-    
+    var deptKey = params.department || 'mens'
+    var catKey = params.category || 'slippers'
+    var locationKey = isMobile ? (deptKey + '-' + catKey + '-mobile') : (deptKey + '-' + catKey)
+
     fetch(API_BASE_URL + '/api/videos/' + locationKey)
       .then(function(res) {
-        if (!res.ok) throw new Error('Failed')
+        if (!res.ok) throw new Error('API down')
         return res.json()
       })
       .then(function(data) {
         if (isMounted && data.success && data.video && data.video.videoUrl) {
-          var url = data.video.videoUrl
+          var url = data.video.videoUrl.trim()
           if (url.startsWith('/')) url = API_BASE_URL + url
           setVideoUrl(url)
+        } else {
+          if (isMounted) setVideoUrl('')
         }
       })
       .catch(function() {
-        if (isMounted) setVideoUrl(FALLBACK_VIDEO)
+        if (isMounted) setVideoUrl('')
       })
 
     return function() {
       isMounted = false
     }
-  }, [params.department, params.category])
+  }, [params.department, params.category, isMobile])
 
   useEffect(function() {
     setCurrentPage(1)
   }, [activeStyle, sortOrder])
 
-  function handleVideoError() {
-    if (videoUrl !== FALLBACK_VIDEO) {
-      setVideoUrl(FALLBACK_VIDEO)
+  function handleCanPlay() {
+    if (videoRef.current) {
+      var playPromise = videoRef.current.play()
+      if (playPromise !== undefined) {
+        playPromise.catch(function() {})
+      }
     }
   }
 
@@ -117,22 +136,39 @@ function CategoryPage() {
   var startIndex = (currentPage - 1) * itemsPerPage
   var currentProducts = sortedProducts.slice(startIndex, startIndex + itemsPerPage)
 
+  var deptLabel = params.department ? params.department.replace('-', ' ') : 'Shop'
+  var catLabel = params.category ? params.category.replace('-', ' ') : 'All Items'
+
   return (
     <>
-      <section className="category-hero-video">
-        <video 
-          key={videoUrl}
-          autoPlay 
-          muted 
-          loop 
-          playsInline 
-          webkit-playsinline="true"
-          preload="auto"
-          onError={handleVideoError}
-        >
-          <source src={videoUrl} type="video/mp4" />
-        </video>
-      </section>
+      {/* Dynamic Top Hero Video Banner - Same pattern as Home Page */}
+      {videoUrl ? (
+        <section className="category-hero-video">
+          <video
+            ref={videoRef}
+            key={videoUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+            webkit-playsinline="true"
+            preload="auto"
+            onCanPlay={handleCanPlay}
+          >
+            <source src={videoUrl} type="video/mp4" />
+          </video>
+        </section>
+      ) : (
+        <section className="category-hero-video" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a' }}>
+          <div className="hero-video-text" style={{ textAlign: 'center' }}>
+            <h2 style={{ fontSize: '1.4rem', letterSpacing: '0.4em', marginBottom: '8px', color: '#FFF', textTransform: 'capitalize' }}>{catLabel}</h2>
+            <p style={{ fontSize: '0.75rem', color: '#c5a880', letterSpacing: '0.2em' }}>AR VENUE {deptLabel.toUpperCase()} COLLECTION</p>
+            <div style={{ marginTop: '16px', padding: '8px 16px', border: '1px dashed rgba(197,168,128,0.4)', borderRadius: '4px', display: 'inline-block', color: 'rgba(255,255,255,0.4)', fontSize: '0.7rem' }}>
+              Waiting for category video ({isMobile ? 'Mobile' : 'Desktop'})
+            </div>
+          </div>
+        </section>
+      )}
 
       <div className="breadcrumbs">
         Home <span>&gt;</span> Shop <span>&gt;</span> <strong style={{textTransform: 'capitalize'}}>{dept}</strong> <span>&gt;</span> <strong style={{textTransform: 'capitalize'}}>{catName}</strong>

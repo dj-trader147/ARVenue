@@ -1,31 +1,50 @@
 import { useState, useEffect, useRef } from 'react'
 import { API_BASE_URL } from '../../utils/api'
 
-// 24/7 Direct High-Speed Cloud CDN Luxury Video (Zero Render Dependency)
-var FALLBACK_CDN_VIDEO = 'https://assets.mixkit.co/videos/41551/41551-720.mp4'
+// Premium Fallbacks (Widescreen for Desktop, Vertical Editorial for Mobile)
+var FALLBACK_DESKTOP = 'https://assets.mixkit.co/videos/41551/41551-720.mp4'
+var FALLBACK_MOBILE = 'https://assets.mixkit.co/videos/43034/43034-720.mp4' // Verified vertical portrait fashion loop
 
 function HeroVideo() {
-  var [videoSrc, setVideoSrc] = useState(FALLBACK_CDN_VIDEO)
+  var [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  var [videoSrc, setVideoSrc] = useState(window.innerWidth < 768 ? FALLBACK_MOBILE : FALLBACK_DESKTOP)
   var videoRef = useRef(null)
 
+  // Listen to viewport changes
+  useEffect(function() {
+    function handleResize() {
+      var mobileState = window.innerWidth < 768
+      if (mobileState !== isMobile) {
+        setIsMobile(mobileState)
+        setVideoSrc(mobileState ? FALLBACK_MOBILE : FALLBACK_DESKTOP)
+      }
+    }
+    window.addEventListener('resize', handleResize)
+    return function() {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [isMobile])
+
+  // Fetch from MongoDB
   useEffect(function() {
     var isMounted = true
+    var targetLocation = isMobile ? 'landing-mobile' : 'landing'
 
     async function fetchCdnVideo() {
       try {
-        var res = await fetch(API_BASE_URL + '/api/videos/landing')
+        var res = await fetch(API_BASE_URL + '/api/videos/' + targetLocation)
         if (!res.ok) return
         var data = await res.json()
 
         if (isMounted && data.success && data.video && data.video.videoUrl) {
           var url = data.video.videoUrl.trim()
-          // STRICT RULE: Only accept direct Cloud CDN links (http/https). Ignore local Render uploads.
+          // Enforce direct cloud CDN URL policy to bypass sleep modes
           if (url.startsWith('http://') || url.startsWith('https://')) {
             setVideoSrc(url)
           }
         }
       } catch (err) {
-        // Render sleep/offline - smoothly continue on direct CDN
+        // Safe silent continuation with CDN fallback
       }
     }
 
@@ -34,11 +53,12 @@ function HeroVideo() {
     return function() {
       isMounted = false
     }
-  }, [])
+  }, [isMobile])
 
   function handleVideoError() {
-    if (videoSrc !== FALLBACK_CDN_VIDEO) {
-      setVideoSrc(FALLBACK_CDN_VIDEO)
+    var defaultVideo = isMobile ? FALLBACK_MOBILE : FALLBACK_DESKTOP
+    if (videoSrc !== defaultVideo) {
+      setVideoSrc(defaultVideo)
     }
   }
 

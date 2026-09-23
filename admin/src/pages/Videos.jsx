@@ -5,7 +5,7 @@ var departmentCategories = {
   'mens': ['Slippers', 'Fabrics', 'Bags', 'Perfumes', 'Jeans', 'Trousers', 'Shirts'],
   'womens': ['Slippers', 'Fabrics', 'Bags', 'Perfumes', 'Jeans', 'Trousers', 'Shirts'],
   'kids': ['Slippers', 'Jeans', 'Trousers', 'Shirts'],
-  'premium-lounge': ['Exclusive Suits', 'Luxury Watches', 'Designer Shoes', 'Limited Edition Bags']
+  'premium-lounge': ['Exclusive Suits', 'Luxury Perfumes', 'Premium Slippers', 'Limited Edition Bags']
 }
 
 function Videos() {
@@ -41,7 +41,7 @@ function Videos() {
       var data = await res.json()
 
       if (data.success) {
-        alert('SUCCESS! Video is now LIVE on customer website for [' + targetLocation + ']!')
+        alert('SUCCESS! Video is now LIVE on customer website for [' + targetLocation.toUpperCase() + ']!')
         setVideoFile(null)
         setVideoUrlInput('')
       } else {
@@ -63,7 +63,7 @@ function Videos() {
         
         {/* Production Cloud Persistence Alert */}
         <div style={{ background: '#FFF3CD', border: '1px solid #FFE69C', color: '#664D03', padding: '16px', borderRadius: '4px', fontSize: '0.85rem', lineHeight: '1.5', marginBottom: '24px' }}>
-          ⚠️ <strong>PRODUCTION DEPLOYMENT NOTICE:</strong><br/>
+          ?? <strong>PRODUCTION DEPLOYMENT NOTICE:</strong><br/>
           Free web services (Render) reset local directories on routine reboots. For permanent 100% stable videos, we highly recommend using <strong>Option B (Direct MP4 URL)</strong> with links from Pexels, Cloudinary or stable hosting. This guarantees video never disappears!
         </div>
 
@@ -72,11 +72,24 @@ function Videos() {
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Video Location</label>
             <select value={pageType} onChange={function(e) { setPageType(e.target.value) }} style={{ width: '100%', padding: '12px', border: '1px solid #CCC', borderRadius: '4px' }}>
-              <option value="landing">Main Home Landing Page (Hero Video)</option>
+              <option value="landing">Main Home Landing Page - Desktop (Widescreen 16:9)</option>
+              <option value="landing-mobile">Main Home Landing Page - Mobile (Vertical Portrait 9:16)</option>
               <option value="department">Department Page (Mens, Womens, Kids, Premium)</option>
               <option value="category">Specific Category Page</option>
             </select>
           </div>
+
+          {pageType === 'landing' && (
+            <div style={{ background: '#F0F7FF', border: '1px solid #BEE3F8', color: '#2B6CB0', padding: '12px', borderRadius: '4px', fontSize: '0.8rem' }}>
+              ?? <strong>Desktop Mode:</strong> Use a horizontal widescreen video (like 16:9) to beautifully stretch on laptop and computer screens.
+            </div>
+          )}
+
+          {pageType === 'landing-mobile' && (
+            <div style={{ background: '#FDF2F8', border: '1px solid #FBCFE8', color: '#BE185D', padding: '12px', borderRadius: '4px', fontSize: '0.8rem' }}>
+              ?? <strong>Mobile Mode:</strong> Use a vertical portrait video (like 9:16 format) to fill mobile screens perfectly without side-cropping.
+            </div>
+          )}
 
           {pageType === 'department' && (
             <div>

@@ -45,9 +45,7 @@ function Products() {
   var [style, setStyle] = useState('Casual')
   var [description, setDescription] = useState('')
   var [imageFile, setImageFile] = useState(null)
-  var [imageUrl, setImageUrl] = useState('')
   var [videoFile, setVideoFile] = useState(null)
-  var [videoUrl, setVideoUrl] = useState('')
   var [colorNames, setColorNames] = useState('Black, Brown')
   var [selectedSizes, setSelectedSizes] = useState(['40','41','42','43','44','45'])
   var [isPublishing, setIsPublishing] = useState(false)
@@ -108,8 +106,6 @@ function Products() {
     formData.append('category', category)
     formData.append('style', style)
     formData.append('description', description)
-    formData.append('imageUrl', imageUrl)
-    formData.append('videoUrl', videoUrl)
     formData.append('colors', JSON.stringify(parsedColors))
     formData.append('sizes', JSON.stringify(finalSizes))
 
@@ -132,8 +128,6 @@ function Products() {
           setName('')
           setPrice('')
           setDescription('')
-          setImageUrl('')
-          setVideoUrl('')
           setImageFile(null)
           setVideoFile(null)
           fetchProducts()
@@ -166,7 +160,7 @@ function Products() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       <div>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 400, marginBottom: '8px', color: '#111' }}>Add New Product</h1>
-        <p style={{ color: '#666', fontSize: '0.85rem' }}>Upload files or paste links to publish products directly to the live website.</p>
+        <p style={{ color: '#666', fontSize: '0.85rem' }}>Upload product picture & video files directly from your computer or mobile phone.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="admin-card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
@@ -238,59 +232,35 @@ function Products() {
           </div>
         </div>
 
-        {/* Right Column: Media Uploads */}
+        {/* Right Column: Direct File Uploads */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           
-          {/* Image Input Section */}
-          <div style={{ padding: '16px', background: '#FAFAFA', border: '1px dashed #CCC', borderRadius: '4px' }}>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '8px' }}>Product Image</label>
-            
-            <div style={{ marginBottom: '8px' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#444' }}>Option A: Choose Image File from Phone/PC</span>
-              <input 
-                type="file" 
-                accept="image/*"
-                onChange={function(e) { setImageFile(e.target.files[0] || null) }}
-                style={{ width: '100%', marginTop: '4px', fontSize: '0.8rem' }}
-              />
-            </div>
-
-            <div style={{ marginTop: '12px' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#444' }}>Option B: OR Paste Direct Image Link (CDN URL)</span>
-              <input 
-                type="text" 
-                placeholder="https://.../image.jpg" 
-                value={imageUrl}
-                onChange={function(e) { setImageUrl(e.target.value) }}
-                style={{ width: '100%', padding: '8px', border: '1px solid #CCC', borderRadius: '4px', marginTop: '4px', fontSize: '0.8rem' }} 
-              />
-            </div>
+          {/* Direct Image File Box */}
+          <div style={{ padding: '16px', background: '#FAFAFA', border: '2px dashed #000', borderRadius: '6px' }}>
+            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, marginBottom: '6px', color: '#111' }}>
+              📸 Upload Product Image File *
+            </label>
+            <input 
+              type="file" 
+              accept="image/*"
+              onChange={function(e) { setImageFile(e.target.files[0] || null) }}
+              style={{ width: '100%', fontSize: '0.85rem', cursor: 'pointer' }}
+            />
+            <p style={{ fontSize: '0.75rem', color: '#666', marginTop: '6px' }}>Choose a photo from your PC or Phone gallery.</p>
           </div>
 
-          {/* Video Input Section */}
-          <div style={{ padding: '16px', background: '#FAFAFA', border: '1px dashed #CCC', borderRadius: '4px' }}>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '8px' }}>Product Video (Optional)</label>
-            
-            <div style={{ marginBottom: '8px' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#444' }}>Option A: Choose MP4 Video File</span>
-              <input 
-                type="file" 
-                accept="video/mp4"
-                onChange={function(e) { setVideoFile(e.target.files[0] || null) }}
-                style={{ width: '100%', marginTop: '4px', fontSize: '0.8rem' }}
-              />
-            </div>
-
-            <div style={{ marginTop: '12px' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#444' }}>Option B: OR Paste Direct Video Link (MP4 URL)</span>
-              <input 
-                type="text" 
-                placeholder="https://.../video.mp4" 
-                value={videoUrl}
-                onChange={function(e) { setVideoUrl(e.target.value) }}
-                style={{ width: '100%', padding: '8px', border: '1px solid #CCC', borderRadius: '4px', marginTop: '4px', fontSize: '0.8rem' }} 
-              />
-            </div>
+          {/* Direct Video File Box */}
+          <div style={{ padding: '16px', background: '#FAFAFA', border: '2px dashed #000', borderRadius: '6px' }}>
+            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, marginBottom: '6px', color: '#111' }}>
+              🎥 Upload Product Video File (Optional MP4)
+            </label>
+            <input 
+              type="file" 
+              accept="video/mp4,video/*"
+              onChange={function(e) { setVideoFile(e.target.files[0] || null) }}
+              style={{ width: '100%', fontSize: '0.85rem', cursor: 'pointer' }}
+            />
+            <p style={{ fontSize: '0.75rem', color: '#666', marginTop: '6px' }}>Choose a short video clip from your PC or Phone.</p>
           </div>
 
           <div>

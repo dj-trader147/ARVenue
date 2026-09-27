@@ -44,14 +44,15 @@ function Products() {
   var [price, setPrice] = useState('')
   var [style, setStyle] = useState('Casual')
   var [description, setDescription] = useState('')
+  var [imageFile, setImageFile] = useState(null)
   var [imageUrl, setImageUrl] = useState('')
+  var [videoFile, setVideoFile] = useState(null)
   var [videoUrl, setVideoUrl] = useState('')
   var [colorNames, setColorNames] = useState('Black, Brown')
-  var [selectedSizes, setSelectedSizes] = useState([])
+  var [selectedSizes, setSelectedSizes] = useState(['40','41','42','43','44','45'])
   var [isPublishing, setIsPublishing] = useState(false)
   var [existingProducts, setExistingProducts] = useState([])
 
-  // Load existing products on mount
   useEffect(function() {
     fetchProducts()
   }, [])
@@ -70,8 +71,6 @@ function Products() {
     setDept(newDept)
     var firstCat = departmentCategories[newDept][0]
     setCategory(firstCat)
-    
-    // Auto-preselect all sizes for this category
     var defaultSizes = adminSizeConfig[newDept] && adminSizeConfig[newDept][firstCat] ? adminSizeConfig[newDept][firstCat] : []
     setSelectedSizes(defaultSizes)
   }
@@ -79,8 +78,6 @@ function Products() {
   function handleCatChange(e) {
     var newCat = e.target.value
     setCategory(newCat)
-    
-    // Auto-preselect all sizes for this category
     var defaultSizes = adminSizeConfig[dept] && adminSizeConfig[dept][newCat] ? adminSizeConfig[dept][newCat] : []
     setSelectedSizes(defaultSizes)
   }
@@ -104,44 +101,49 @@ function Products() {
     var availableCategorySizes = adminSizeConfig[dept] && adminSizeConfig[dept][category] ? adminSizeConfig[dept][category] : []
     var finalSizes = availableCategorySizes.length > 0 ? selectedSizes : []
 
-    var defaultImage = imageUrl.trim() || 'https://images.unsplash.com/photo-1620806956627-2c9c7f66a203?w=800&q=80'
+    var formData = new FormData()
+    formData.append('name', name)
+    formData.append('price', price)
+    formData.append('department', dept)
+    formData.append('category', category)
+    formData.append('style', style)
+    formData.append('description', description)
+    formData.append('imageUrl', imageUrl)
+    formData.append('videoUrl', videoUrl)
+    formData.append('colors', JSON.stringify(parsedColors))
+    formData.append('sizes', JSON.stringify(finalSizes))
 
-    var payload = {
-      name: name,
-      price: Number(price),
-      department: dept,
-      category: category,
-      style: style,
-      description: description,
-      images: [defaultImage],
-      video: videoUrl.trim(),
-      colors: parsedColors,
-      sizes: finalSizes
+    if (imageFile) {
+      formData.append('imageFile', imageFile)
+    }
+    if (videoFile) {
+      formData.append('videoFile', videoFile)
     }
 
     fetch(API_BASE_URL + '/api/products', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: formData
     })
       .then(function(res) { return res.json() })
       .then(function(data) {
         setIsPublishing(false)
         if (data.success) {
-          alert('Product Published Successfully!')
+          alert('Product Published Successfully to Website!')
           setName('')
           setPrice('')
           setDescription('')
           setImageUrl('')
           setVideoUrl('')
+          setImageFile(null)
+          setVideoFile(null)
           fetchProducts()
         } else {
-          alert('Error: ' + data.message)
+          alert('Error publishing product: ' + (data.message || 'Check network connection.'))
         }
       })
       .catch(function(err) {
         setIsPublishing(false)
-        alert('Failed to connect to backend server.')
+        alert('Error connecting to backend server.')
       })
   }
 
@@ -151,7 +153,7 @@ function Products() {
       .then(function(res) { return res.json() })
       .then(function(data) {
         if (data.success) {
-          alert('Product deleted')
+          alert('Product deleted successfully.')
           fetchProducts()
         }
       })
@@ -164,7 +166,7 @@ function Products() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       <div>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 400, marginBottom: '8px', color: '#111' }}>Add New Product</h1>
-        <p style={{ color: '#666', fontSize: '0.85rem' }}>Publish new items live to the customer website instantly.</p>
+        <p style={{ color: '#666', fontSize: '0.85rem' }}>Upload files or paste links to publish products directly to the live website.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="admin-card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
@@ -228,7 +230,7 @@ function Products() {
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Description</label>
             <textarea 
               rows="4" 
-              placeholder="Product description and features..." 
+              placeholder="Product details, fabric, care instructions..." 
               value={description}
               onChange={function(e) { setDescription(e.target.value) }}
               style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px', resize: 'vertical' }}
@@ -236,29 +238,59 @@ function Products() {
           </div>
         </div>
 
-        {/* Right Column */}
+        {/* Right Column: Media Uploads */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Product Image Direct CDN / Image URL</label>
-            <input 
-              type="text" 
-              placeholder="https://images.unsplash.com/... or CDN link" 
-              value={imageUrl}
-              onChange={function(e) { setImageUrl(e.target.value) }}
-              style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }} 
-            />
-            <p style={{ fontSize: '0.7rem', color: '#666', marginTop: '4px' }}>Leave blank to use luxury placeholder image.</p>
+          
+          {/* Image Input Section */}
+          <div style={{ padding: '16px', background: '#FAFAFA', border: '1px dashed #CCC', borderRadius: '4px' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '8px' }}>Product Image</label>
+            
+            <div style={{ marginBottom: '8px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#444' }}>Option A: Choose Image File from Phone/PC</span>
+              <input 
+                type="file" 
+                accept="image/*"
+                onChange={function(e) { setImageFile(e.target.files[0] || null) }}
+                style={{ width: '100%', marginTop: '4px', fontSize: '0.8rem' }}
+              />
+            </div>
+
+            <div style={{ marginTop: '12px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#444' }}>Option B: OR Paste Direct Image Link (CDN URL)</span>
+              <input 
+                type="text" 
+                placeholder="https://.../image.jpg" 
+                value={imageUrl}
+                onChange={function(e) { setImageUrl(e.target.value) }}
+                style={{ width: '100%', padding: '8px', border: '1px solid #CCC', borderRadius: '4px', marginTop: '4px', fontSize: '0.8rem' }} 
+              />
+            </div>
           </div>
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Product Video URL (Optional MP4 Link)</label>
-            <input 
-              type="text" 
-              placeholder="https://.../video.mp4" 
-              value={videoUrl}
-              onChange={function(e) { setVideoUrl(e.target.value) }}
-              style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }} 
-            />
+          {/* Video Input Section */}
+          <div style={{ padding: '16px', background: '#FAFAFA', border: '1px dashed #CCC', borderRadius: '4px' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '8px' }}>Product Video (Optional)</label>
+            
+            <div style={{ marginBottom: '8px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#444' }}>Option A: Choose MP4 Video File</span>
+              <input 
+                type="file" 
+                accept="video/mp4"
+                onChange={function(e) { setVideoFile(e.target.files[0] || null) }}
+                style={{ width: '100%', marginTop: '4px', fontSize: '0.8rem' }}
+              />
+            </div>
+
+            <div style={{ marginTop: '12px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#444' }}>Option B: OR Paste Direct Video Link (MP4 URL)</span>
+              <input 
+                type="text" 
+                placeholder="https://.../video.mp4" 
+                value={videoUrl}
+                onChange={function(e) { setVideoUrl(e.target.value) }}
+                style={{ width: '100%', padding: '8px', border: '1px solid #CCC', borderRadius: '4px', marginTop: '4px', fontSize: '0.8rem' }} 
+              />
+            </div>
           </div>
 
           <div>
@@ -303,7 +335,7 @@ function Products() {
             disabled={isPublishing}
             style={{ padding: '16px', background: '#111', color: '#FFF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: '4px', marginTop: 'auto', border: 'none', cursor: 'pointer' }}
           >
-            {isPublishing ? 'Publishing...' : 'Publish Product to Website'}
+            {isPublishing ? 'Publishing Product...' : 'Publish Product to Website'}
           </button>
         </div>
       </form>
@@ -316,9 +348,11 @@ function Products() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
             {existingProducts.map(function(p) {
+              var pImg = p.images && p.images.length > 0 ? p.images[0] : 'https://images.unsplash.com/photo-1620806956627-2c9c7f66a203?w=800&q=80'
+              if (pImg.startsWith('/')) pImg = API_BASE_URL + pImg
               return (
                 <div key={p._id} style={{ border: '1px solid #EEE', borderRadius: '8px', padding: '12px', background: '#FFF' }}>
-                  <img src={p.images[0] || 'https://images.unsplash.com/photo-1620806956627-2c9c7f66a203?w=800&q=80'} alt={p.name} style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '4px' }} />
+                  <img src={pImg} alt={p.name} style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '4px' }} />
                   <h4 style={{ fontSize: '0.9rem', margin: '8px 0 4px', fontWeight: 600 }}>{p.name}</h4>
                   <div style={{ color: '#8C6D46', fontWeight: 'bold', fontSize: '0.9rem' }}>Rs. {p.price.toLocaleString()}</div>
                   <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '4px', textTransform: 'capitalize' }}>

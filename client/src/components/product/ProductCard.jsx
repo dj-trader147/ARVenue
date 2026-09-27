@@ -19,6 +19,8 @@ function ProductCard(props) {
     ? product.images[0]
     : 'https://images.unsplash.com/photo-1620806956627-2c9c7f66a203?w=800&q=80'
 
+  if (displayImage.startsWith('/')) displayImage = API_BASE_URL + displayImage
+
   var cleanCatLower = String(cat).toLowerCase()
   var isPerfume = cleanCatLower === 'perfumes' || cleanCatLower === 'luxury-perfumes'
 

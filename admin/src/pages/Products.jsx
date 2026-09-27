@@ -40,6 +40,7 @@ var adminSizeConfig = {
 function Products() {
   var [dept, setDept] = useState('mens')
   var [category, setCategory] = useState('Jeans')
+  var [colorNames, setColorNames] = useState('Black, Brown')
 
   function handleDeptChange(e) {
     var newDept = e.target.value
@@ -126,13 +127,21 @@ function Products() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Available Colors</label>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <input type="color" defaultValue="#111111" style={{ width: '40px', height: '40px', padding: 0, border: 'none', cursor: 'pointer' }} />
-              <input type="color" defaultValue="#D4AF37" style={{ width: '40px', height: '40px', padding: 0, border: 'none', cursor: 'pointer' }} />
-              <input type="color" defaultValue="#8B4513" style={{ width: '40px', height: '40px', padding: 0, border: 'none', cursor: 'pointer' }} />
-              <button type="button" style={{ padding: '0 16px', height: '40px', background: '#E5E7EB', borderRadius: '4px', fontSize: '0.85rem' }}>+ Add Color</button>
-            </div>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Available Colors (Text)</label>
+            {(category === 'Perfumes' || category === 'Luxury Perfumes') ? (
+              <p style={{ fontSize: '0.85rem', color: '#999', fontStyle: 'italic' }}>No colors for perfumes — color option hidden on storefront.</p>
+            ) : (
+              <>
+                <input
+                  type="text"
+                  value={colorNames}
+                  onChange={function(e) { setColorNames(e.target.value) }}
+                  placeholder="e.g. Black, Brown, Navy, White"
+                  style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }}
+                />
+                <p style={{ fontSize: '0.7rem', color: '#666', marginTop: '4px' }}>Type color names separated by commas. Same text will show to customers.</p>
+              </>
+            )}
           </div>
 
           <div>

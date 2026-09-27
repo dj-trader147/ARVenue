@@ -45,6 +45,12 @@ var sizeMasterConfig = {
   }
 }
 
+function categoryHasColors(cat) {
+  if (!cat) return true
+  var c = String(cat).toLowerCase()
+  return c !== 'perfumes' && c !== 'luxury-perfumes'
+}
+
 function ProductPage() {
   var params = useParams()
   var [searchParams] = useSearchParams()
@@ -76,12 +82,12 @@ function ProductPage() {
       { type: 'image', url: 'https://images.unsplash.com/photo-1620806956627-2c9c7f66a203?w=800&q=80' },
       { type: 'video', url: 'https://videos.pexels.com/video-files/4434241/4434241-hd_1920_1080_30fps.mp4' }
     ],
-    colors: ['#111111', '#D4AF37', '#8B4513'],
+    colors: ['Black', 'Brown', 'Navy'],
     sizes: availableSizesList
   }
 
   var [activeMedia, setActiveMedia] = useState(product.media[0])
-  var [activeColor, setActiveColor] = useState(product.colors[0])
+  var [activeColor, setActiveColor] = useState(categoryHasColors(catKey) && product.colors.length ? product.colors[0] : 'N/A')
   var [activeSize, setActiveSize] = useState(product.sizes.length > 0 ? product.sizes[0] : 'N/A')
   var [isFullScreen, setIsFullScreen] = useState(false)
 
@@ -151,22 +157,25 @@ function ProductPage() {
             </div>
             <div className="price">Rs. {product.price.toLocaleString()}</div>
 
-            <div className="option-group">
-              <div className="option-title">Color</div>
-              <div className="color-options">
-                {product.colors.map(function(color, index) {
-                  return (
-                    <button
-                      key={index}
-                      className={'color-btn' + (activeColor === color ? ' active' : '')}
-                      style={{ backgroundColor: color }}
-                      onClick={function() { setActiveColor(color) }}
-                      aria-label="Select color"
-                    />
-                  )
-                })}
+            {categoryHasColors(catKey) && product.colors && product.colors.length > 0 && (
+              <div className="option-group">
+                <div className="option-title">Color{activeColor ? ': ' + activeColor : ''}</div>
+                <div className="color-options">
+                  {product.colors.map(function(color, index) {
+                    return (
+                      <button
+                        key={index}
+                        type="button"
+                        className={'color-text-btn' + (activeColor === color ? ' active' : '')}
+                        onClick={function() { setActiveColor(color) }}
+                      >
+                        {color}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* ONLY SHOW SIZE SECTION IF SIZES ARE DEFINED FOR THIS CATEGORY */}
             {product.sizes && product.sizes.length > 0 && (

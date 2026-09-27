@@ -38,18 +38,18 @@ var sizeConfig = {
 }
 
 var allDummyProducts = [
-  { slug: 'prod-1', name: 'Classic Urban Article 1', price: 1200, style: 'Casual', colors: ['#111', '#CCC'] },
-  { slug: 'prod-2', name: 'Premium Edition Article 2', price: 4500, style: 'Exclusive', colors: ['#333'] },
-  { slug: 'prod-3', name: 'Standard Formal Article 3', price: 2100, style: 'Formal', colors: ['#000', '#555'] },
-  { slug: 'prod-4', name: 'Urban Casual Article 4', price: 1500, style: 'Casual', colors: ['#999'] },
-  { slug: 'prod-5', name: 'Signature Series Article 5', price: 3200, style: 'Exclusive', colors: ['#111', '#D4AF37'] },
-  { slug: 'prod-6', name: 'Basic Everyday Article 6', price: 800, style: 'Casual', colors: ['#FFF', '#000'] },
-  { slug: 'prod-7', name: 'Formal Elite Article 7', price: 2800, style: 'Formal', colors: ['#222'] },
-  { slug: 'prod-8', name: 'Casual Weekend Article 8', price: 1100, style: 'Casual', colors: ['#777', '#333'] },
-  { slug: 'prod-9', name: 'Limited Gold Article 9', price: 5500, style: 'Exclusive', colors: ['#D4AF37'] },
-  { slug: 'prod-10', name: 'Smart Formal Article 10', price: 2400, style: 'Formal', colors: ['#111'] },
-  { slug: 'prod-11', name: 'Streetwear Article 11', price: 1600, style: 'Casual', colors: ['#444', '#888'] },
-  { slug: 'prod-12', name: 'Supreme VIP Article 12', price: 6000, style: 'Exclusive', colors: ['#000', '#D4AF37', '#FFF'] }
+  { slug: 'prod-1', name: 'Classic Urban Article 1', price: 1200, style: 'Casual', colors: ['Black', 'Grey'] },
+  { slug: 'prod-2', name: 'Premium Edition Article 2', price: 4500, style: 'Exclusive', colors: ['Charcoal'] },
+  { slug: 'prod-3', name: 'Standard Formal Article 3', price: 2100, style: 'Formal', colors: ['Black', 'Grey'] },
+  { slug: 'prod-4', name: 'Urban Casual Article 4', price: 1500, style: 'Casual', colors: ['Grey'] },
+  { slug: 'prod-5', name: 'Signature Series Article 5', price: 3200, style: 'Exclusive', colors: ['Black', 'Gold'] },
+  { slug: 'prod-6', name: 'Basic Everyday Article 6', price: 800, style: 'Casual', colors: ['White', 'Black'] },
+  { slug: 'prod-7', name: 'Formal Elite Article 7', price: 2800, style: 'Formal', colors: ['Black'] },
+  { slug: 'prod-8', name: 'Casual Weekend Article 8', price: 1100, style: 'Casual', colors: ['Grey', 'Black'] },
+  { slug: 'prod-9', name: 'Limited Gold Article 9', price: 5500, style: 'Exclusive', colors: ['Gold'] },
+  { slug: 'prod-10', name: 'Smart Formal Article 10', price: 2400, style: 'Formal', colors: ['Black'] },
+  { slug: 'prod-11', name: 'Streetwear Article 11', price: 1600, style: 'Casual', colors: ['Charcoal', 'Grey'] },
+  { slug: 'prod-12', name: 'Supreme VIP Article 12', price: 6000, style: 'Exclusive', colors: ['Black', 'Gold', 'White'] }
 ]
 
 function CategoryPage() {

@@ -39,14 +39,9 @@ function ProductCard(props) {
           <span className="count">(0)</span>
         </div>
 
-        {product.colors && (
+        {product.colors && product.colors.length > 0 && cat !== 'perfumes' && cat !== 'luxury-perfumes' && (
           <div className="product-colors-info">
-            <span>{product.colors.length} Colors</span>
-            <div className="color-dots">
-              {product.colors.map(function(c, i) {
-                return <span className="color-dot" key={i} style={{ background: c }} />
-              })}
-            </div>
+            <span>{product.colors.length} Color{product.colors.length > 1 ? 's' : ''}: {product.colors.join(', ')}</span>
           </div>
         )}
       </div>

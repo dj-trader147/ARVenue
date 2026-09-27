@@ -8,6 +8,7 @@ const fs = require('fs')
 const authRoutes = require('./routes/authRoutes')
 const orderRoutes = require('./routes/orderRoutes')
 const videoRoutes = require('./routes/videoRoutes')
+const settingRoutes = require('./routes/settingRoutes')
 
 const app = express()
 
@@ -42,6 +43,7 @@ app.get('/api/health', function (req, res) {
 app.use('/api/auth', authRoutes)
 app.use('/api/orders', orderRoutes)
 app.use('/api/videos', videoRoutes)
+app.use('/api/settings', settingRoutes)
 
 app.use(function (req, res) {
   res.status(404).json({ success: false, message: 'API route not found: ' + req.originalUrl })

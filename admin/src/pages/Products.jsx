@@ -44,8 +44,13 @@ function Products() {
   var [price, setPrice] = useState('')
   var [style, setStyle] = useState('Casual')
   var [description, setDescription] = useState('')
+  
+  // Media States (File + Base64 preview)
+  var [imagePreview, setImagePreview] = useState('')
   var [imageFile, setImageFile] = useState(null)
   var [videoFile, setVideoFile] = useState(null)
+  var [videoFileName, setVideoFileName] = useState('')
+  
   var [colorNames, setColorNames] = useState('Black, Brown')
   var [selectedSizes, setSelectedSizes] = useState(['40','41','42','43','44','45'])
   var [isPublishing, setIsPublishing] = useState(false)
@@ -62,6 +67,25 @@ function Products() {
         if (data.success) setExistingProducts(data.products)
       })
       .catch(function() {})
+  }
+
+  function handleImageSelect(e) {
+    var file = e.target.files[0]
+    if (!file) return
+    setImageFile(file)
+
+    var reader = new FileReader()
+    reader.onloadend = function() {
+      setImagePreview(reader.result)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  function handleVideoSelect(e) {
+    var file = e.target.files[0]
+    if (!file) return
+    setVideoFile(file)
+    setVideoFileName(file.name)
   }
 
   function handleDeptChange(e) {
@@ -90,6 +114,12 @@ function Products() {
 
   function handleSubmit(e) {
     e.preventDefault()
+
+    if (!imagePreview) {
+      alert('Please select a product image file from your PC or Phone.')
+      return
+    }
+
     setIsPublishing(true)
 
     var parsedColors = (category === 'Perfumes' || category === 'Luxury Perfumes')
@@ -106,6 +136,7 @@ function Products() {
     formData.append('category', category)
     formData.append('style', style)
     formData.append('description', description)
+    formData.append('imageUrl', imagePreview) // Send Base64 image directly for permanent Cloud DB storage
     formData.append('colors', JSON.stringify(parsedColors))
     formData.append('sizes', JSON.stringify(finalSizes))
 
@@ -128,11 +159,13 @@ function Products() {
           setName('')
           setPrice('')
           setDescription('')
+          setImagePreview('')
           setImageFile(null)
           setVideoFile(null)
+          setVideoFileName('')
           fetchProducts()
         } else {
-          alert('Error publishing product: ' + (data.message || 'Check network connection.'))
+          alert('Error publishing product: ' + (data.message || 'Please try again.'))
         }
       })
       .catch(function(err) {
@@ -158,9 +191,14 @@ function Products() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      <div>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 400, marginBottom: '8px', color: '#111' }}>Add New Product</h1>
-        <p style={{ color: '#666', fontSize: '0.85rem' }}>Upload product picture & video files directly from your computer or mobile phone.</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 400, marginBottom: '8px', color: '#111' }}>Add New Product</h1>
+          <p style={{ color: '#666', fontSize: '0.85rem' }}>Upload photo and video files directly from your phone gallery or PC.</p>
+        </div>
+        <div style={{ background: '#D1FAE5', color: '#065F46', padding: '6px 14px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600 }}>
+          ✓ Direct File Upload Mode Active
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="admin-card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
@@ -236,31 +274,43 @@ function Products() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           
           {/* Direct Image File Box */}
-          <div style={{ padding: '16px', background: '#FAFAFA', border: '2px dashed #000', borderRadius: '6px' }}>
+          <div style={{ padding: '16px', background: '#FAFAFA', border: '2px dashed #171717', borderRadius: '6px' }}>
             <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, marginBottom: '6px', color: '#111' }}>
-              📸 Upload Product Image File *
+              📸 Choose Product Photo File *
             </label>
             <input 
               type="file" 
               accept="image/*"
-              onChange={function(e) { setImageFile(e.target.files[0] || null) }}
+              required={!imagePreview}
+              onChange={handleImageSelect}
               style={{ width: '100%', fontSize: '0.85rem', cursor: 'pointer' }}
             />
-            <p style={{ fontSize: '0.75rem', color: '#666', marginTop: '6px' }}>Choose a photo from your PC or Phone gallery.</p>
+            {imagePreview ? (
+              <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <img src={imagePreview} alt="Preview" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #171717' }} />
+                <span style={{ fontSize: '0.8rem', color: '#065F46', fontWeight: 600 }}>✓ Image Selected & Ready</span>
+              </div>
+            ) : (
+              <p style={{ fontSize: '0.75rem', color: '#666', marginTop: '6px' }}>Select a photo from phone gallery or computer.</p>
+            )}
           </div>
 
           {/* Direct Video File Box */}
-          <div style={{ padding: '16px', background: '#FAFAFA', border: '2px dashed #000', borderRadius: '6px' }}>
+          <div style={{ padding: '16px', background: '#FAFAFA', border: '2px dashed #171717', borderRadius: '6px' }}>
             <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, marginBottom: '6px', color: '#111' }}>
-              🎥 Upload Product Video File (Optional MP4)
+              🎥 Choose Product Video File (Optional MP4)
             </label>
             <input 
               type="file" 
               accept="video/mp4,video/*"
-              onChange={function(e) { setVideoFile(e.target.files[0] || null) }}
+              onChange={handleVideoSelect}
               style={{ width: '100%', fontSize: '0.85rem', cursor: 'pointer' }}
             />
-            <p style={{ fontSize: '0.75rem', color: '#666', marginTop: '6px' }}>Choose a short video clip from your PC or Phone.</p>
+            {videoFileName && (
+              <p style={{ fontSize: '0.8rem', color: '#065F46', fontWeight: 600, marginTop: '8px' }}>
+                ✓ Video File Selected: {videoFileName}
+              </p>
+            )}
           </div>
 
           <div>
@@ -319,7 +369,7 @@ function Products() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
             {existingProducts.map(function(p) {
               var pImg = p.images && p.images.length > 0 ? p.images[0] : 'https://images.unsplash.com/photo-1620806956627-2c9c7f66a203?w=800&q=80'
-              if (pImg.startsWith('/')) pImg = API_BASE_URL + pImg
+              if (pImg.startsWith('/') && !pImg.startsWith('data:')) pImg = API_BASE_URL + pImg
               return (
                 <div key={p._id} style={{ border: '1px solid #EEE', borderRadius: '8px', padding: '12px', background: '#FFF' }}>
                   <img src={pImg} alt={p.name} style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '4px' }} />

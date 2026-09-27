@@ -121,23 +121,25 @@ function ProductPage() {
               </div>
             </div>
 
-            <div className="option-group">
-              <div className="option-title">Size</div>
-              <div className="size-options">
-                {product.sizes.map(function(size, index) {
-                  return (
-                    <button
-                      key={index}
-                      className={'size-btn' + (activeSize === size.name ? ' active' : '')}
-                      disabled={!size.inStock}
-                      onClick={function() { setActiveSize(size.name) }}
-                    >
-                      {size.name}
-                    </button>
-                  )
-                })}
+            {product.sizes && product.sizes.length > 0 && (
+              <div className="option-group">
+                <div className="option-title">Size</div>
+                <div className="size-options">
+                  {product.sizes.map(function(size, index) {
+                    return (
+                      <button
+                        key={index}
+                        className={'size-btn' + (activeSize === size.name ? ' active' : '')}
+                        disabled={!size.inStock}
+                        onClick={function() { setActiveSize(size.name) }}
+                      >
+                        {size.name}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             <button className="add-to-cart-btn" onClick={handleAddToCart}>Add To Cart</button>
             <button className="buy-now-btn" onClick={handleBuyNow}>Buy Now (Cash on Delivery)</button>

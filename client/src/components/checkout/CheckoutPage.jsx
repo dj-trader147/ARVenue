@@ -252,7 +252,7 @@ function CheckoutPage() {
               ) : (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F4F4F4', padding: '10px 12px' }}>
                   <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#171717' }}>
-                    Code Applied: <span style={{ color: '#8C6D46', letterSpacing: '1px' }}>{appliedPromo}</span>
+                    Code Applied: <span style={{ color: '#8C6D46', letterSpacing: '1px' }}>{typeof appliedPromo === 'object' ? appliedPromo.code : appliedPromo}</span>
                   </div>
                   <button 
                     type="button" 

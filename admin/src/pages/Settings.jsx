@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { API_BASE_URL } from '../utils/api'
 
 function Settings() {
   var auth = useAuth()
@@ -11,22 +12,27 @@ function Settings() {
   var [passSuccess, setPassSuccess] = useState('')
   var [passError, setPassError] = useState('')
 
-  // Promo Code Manager states
+  // Promo Code Manager states (Connected to MongoDB)
   var [promoEnabled, setPromoEnabled] = useState(true)
   var [promoCode, setPromoCode] = useState('GRANDOPENING')
   var [promoPercentage, setPromoPercentage] = useState(20)
   var [promoSuccess, setPromoSuccess] = useState('')
+  var [promoLoading, setPromoLoading] = useState(false)
 
+  // Fetch Live Promo Settings from MongoDB
   useEffect(function() {
-    var localPromo = localStorage.getItem('ar_venue_promo_settings')
-    if (localPromo) {
-      try {
-        var parsed = JSON.parse(localPromo)
-        setPromoEnabled(parsed.enabled)
-        setPromoCode(parsed.code)
-        setPromoPercentage(parsed.percentage)
-      } catch (e) {}
-    }
+    fetch(API_BASE_URL + '/api/settings/promo')
+      .then(function(res) { return res.json() })
+      .then(function(data) {
+        if (data.success && data.settings) {
+          setPromoEnabled(data.settings.enabled)
+          setPromoCode(data.settings.code)
+          setPromoPercentage(data.settings.percentage)
+        }
+      })
+      .catch(function(err) {
+        console.error('Failed to load promo settings:', err)
+      })
   }, [])
 
   function handlePasswordChange(e) {
@@ -53,123 +59,164 @@ function Settings() {
   function handlePromoSave(e) {
     e.preventDefault()
     setPromoSuccess('')
+    setPromoLoading(true)
 
-    var settings = {
-      enabled: promoEnabled,
-      code: promoCode.trim().toUpperCase(),
-      percentage: parseInt(promoPercentage) || 0
-    }
-
-    localStorage.setItem('ar_venue_promo_settings', JSON.stringify(settings))
-    setPromoSuccess('Promo code settings saved successfully!')
+    fetch(API_BASE_URL + '/api/settings/promo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        enabled: promoEnabled,
+        code: promoCode,
+        percentage: Number(promoPercentage)
+      })
+    })
+      .then(function(res) { return res.json() })
+      .then(function(data) {
+        setPromoLoading(false)
+        if (data.success) {
+          setPromoSuccess('Promo Code settings saved to Cloud Database successfully!')
+          setPromoEnabled(data.settings.enabled)
+          setPromoCode(data.settings.code)
+          setPromoPercentage(data.settings.percentage)
+        } else {
+          alert('Failed to save settings: ' + data.message)
+        }
+      })
+      .catch(function(err) {
+        setPromoLoading(false)
+        alert('Error connecting to backend server.')
+      })
   }
 
   return (
-    <div>
-      <h1 style={{ fontSize: '1.5rem', fontWeight: 400, marginBottom: '32px', color: '#111' }}>Control Center Settings</h1>
+    <div style={{ maxWidth: '800px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      <div>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 400, marginBottom: '8px' }}>Store Settings</h1>
+        <p style={{ color: '#666', fontSize: '0.85rem' }}>Manage security and store-wide discount promo codes.</p>
+      </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', alignItems: 'start' }}>
-        
-        {/* Promo Settings Block */}
-        <div className="admin-card" style={{ background: '#FFF', padding: '24px', border: '1px solid #E5E5E5' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 600, borderBottom: '1px solid #E5E5E5', paddingBottom: '12px', marginTop: 0, marginBottom: '20px' }}>🏷️ PROMO / DISCOUNT CONTROL</h3>
-          {promoSuccess && <div style={{ background: '#D1E7DD', color: '#0F5132', padding: '12px', fontSize: '0.85rem', marginBottom: '20px', borderRadius: '4px' }}>{promoSuccess}</div>}
+      {/* Section 1: Promo Code Manager */}
+      <div className="admin-card">
+        <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px', color: '#111' }}>
+          Discount Promo Code System
+        </h2>
 
-          <form onSubmit={handlePromoSave} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <input 
-                type="checkbox" 
-                id="promoEnabled" 
-                checked={promoEnabled} 
-                onChange={function(e) { setPromoEnabled(e.target.checked) }}
-                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-              />
-              <label htmlFor="promoEnabled" style={{ fontSize: '0.85rem', color: '#374151', cursor: 'pointer', fontWeight: 600 }}>
-                Enable Promo Code on Storefront Checkout
-              </label>
+        {promoSuccess && (
+          <div style={{ padding: '12px', background: '#D1FAE5', color: '#065F46', borderRadius: '4px', fontSize: '0.85rem', marginBottom: '16px' }}>
+            {promoSuccess}
+          </div>
+        )}
+
+        <form onSubmit={handlePromoSave} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600 }}>
+            <input 
+              type="checkbox" 
+              checked={promoEnabled} 
+              onChange={function(e) { setPromoEnabled(e.target.checked) }} 
+            />
+            Enable Promo Code Feature on Customer Checkout Page
+          </label>
+
+          {promoEnabled && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '8px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '6px' }}>Promo Code</label>
+                <input 
+                  type="text" 
+                  value={promoCode} 
+                  onChange={function(e) { setPromoCode(e.target.value.toUpperCase()) }} 
+                  placeholder="e.g. GRANDOPENING" 
+                  required 
+                  style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px', textTransform: 'uppercase' }} 
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '6px' }}>Discount Percentage (%)</label>
+                <input 
+                  type="number" 
+                  min="1" 
+                  max="100" 
+                  value={promoPercentage} 
+                  onChange={function(e) { setPromoPercentage(e.target.value) }} 
+                  required 
+                  style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }} 
+                />
+              </div>
             </div>
+          )}
 
+          <button 
+            type="submit" 
+            disabled={promoLoading}
+            style={{ alignSelf: 'flex-start', padding: '12px 24px', background: '#111', color: '#FFF', borderRadius: '4px', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+          >
+            {promoLoading ? 'Saving...' : 'Save Promo Settings'}
+          </button>
+        </form>
+      </div>
+
+      {/* Section 2: Change Admin Password */}
+      <div className="admin-card">
+        <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px', color: '#111' }}>
+          Change Admin Password
+        </h2>
+
+        {passSuccess && (
+          <div style={{ padding: '12px', background: '#D1FAE5', color: '#065F46', borderRadius: '4px', fontSize: '0.85rem', marginBottom: '16px' }}>
+            {passSuccess}
+          </div>
+        )}
+
+        {passError && (
+          <div style={{ padding: '12px', background: '#FEE2E2', color: '#991B1B', borderRadius: '4px', fontSize: '0.85rem', marginBottom: '16px' }}>
+            {passError}
+          </div>
+        )}
+
+        <form onSubmit={handlePasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '6px' }}>Current Password</label>
+            <input 
+              type="password" 
+              value={currentPass} 
+              onChange={function(e) { setCurrentPass(e.target.value) }} 
+              required 
+              style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }} 
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', color: '#6B7280', textTransform: 'uppercase', marginBottom: '6px', fontWeight: 600 }}>Promo Code Name</label>
-              <input 
-                type="text" 
-                value={promoCode} 
-                onChange={function(e) { setPromoCode(e.target.value) }} 
-                required 
-                disabled={!promoEnabled}
-                style={{ width: '100%', padding: '10px', border: '1px solid #D1D5DB', borderRadius: '4px', outline: 'none', background: promoEnabled ? '#FFF' : '#F3F4F6' }} 
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', color: '#6B7280', textTransform: 'uppercase', marginBottom: '6px', fontWeight: 600 }}>Discount Percentage (%)</label>
-              <input 
-                type="number" 
-                min="1" 
-                max="100"
-                value={promoPercentage} 
-                onChange={function(e) { setPromoPercentage(e.target.value) }} 
-                required 
-                disabled={!promoEnabled}
-                style={{ width: '100%', padding: '10px', border: '1px solid #D1D5DB', borderRadius: '4px', outline: 'none', background: promoEnabled ? '#FFF' : '#F3F4F6' }} 
-              />
-            </div>
-
-            <button type="submit" style={{ padding: '12px 24px', background: '#111', color: '#FFF', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '0.5px' }}>
-              Save Settings
-            </button>
-          </form>
-        </div>
-
-        {/* Password Reset Block */}
-        <div className="admin-card" style={{ background: '#FFF', padding: '24px', border: '1px solid #E5E5E5' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 600, borderBottom: '1px solid #E5E5E5', paddingBottom: '12px', marginTop: 0, marginBottom: '20px' }}>🔐 SECURITY & PASSWORD RESET</h3>
-          {passSuccess && <div style={{ background: '#D1E7DD', color: '#0F5132', padding: '12px', fontSize: '0.85rem', marginBottom: '20px', borderRadius: '4px' }}>{passSuccess}</div>}
-          {passError && <div style={{ background: '#FEE2E2', color: '#B91C1C', padding: '12px', fontSize: '0.85rem', marginBottom: '20px', borderRadius: '4px' }}>{passError}</div>}
-
-          <form onSubmit={handlePasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', color: '#6B7280', textTransform: 'uppercase', marginBottom: '6px', fontWeight: 600 }}>Current Password</label>
-              <input 
-                type="password" 
-                value={currentPass} 
-                onChange={function(e) { setCurrentPass(e.target.value) }} 
-                required 
-                style={{ width: '100%', padding: '10px', border: '1px solid #D1D5DB', borderRadius: '4px', outline: 'none' }} 
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', color: '#6B7280', textTransform: 'uppercase', marginBottom: '6px', fontWeight: 600 }}>New Password</label>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '6px' }}>New Password</label>
               <input 
                 type="password" 
                 value={newPass} 
                 onChange={function(e) { setNewPass(e.target.value) }} 
                 required 
-                style={{ width: '100%', padding: '10px', border: '1px solid #D1D5DB', borderRadius: '4px', outline: 'none' }} 
+                style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }} 
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', color: '#6B7280', textTransform: 'uppercase', marginBottom: '6px', fontWeight: 600 }}>Confirm New Password</label>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '6px' }}>Confirm New Password</label>
               <input 
                 type="password" 
                 value={confirmPass} 
                 onChange={function(e) { setConfirmPass(e.target.value) }} 
                 required 
-                style={{ width: '100%', padding: '10px', border: '1px solid #D1D5DB', borderRadius: '4px', outline: 'none' }} 
+                style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }} 
               />
             </div>
+          </div>
 
-            <button type="submit" style={{ padding: '12px 24px', background: '#111', color: '#FFF', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '0.5px' }}>
-              Update Password
-            </button>
-          </form>
-        </div>
-
+          <button type="submit" style={{ alignSelf: 'flex-start', padding: '12px 24px', background: '#111', color: '#FFF', borderRadius: '4px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
+            Update Password
+          </button>
+        </form>
       </div>
     </div>
-  );
+  )
 }
 
 export default Settings;

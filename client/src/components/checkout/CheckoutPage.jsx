@@ -58,7 +58,7 @@ function CheckoutPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  function handleApplyPromo(e) {
+    function handleApplyPromo(e) {
     e.preventDefault()
     setPromoError('')
     setPromoSuccessMsg('')
@@ -68,11 +68,22 @@ function CheckoutPage() {
       return
     }
 
-    if (promoInput.trim().toUpperCase() === promoSettings.code.toUpperCase()) {
-      setAppliedPromo(promoSettings.code)
-      setPromoSuccessMsg('Promo applied! You saved ' + promoSettings.percentage + '% on your order.')
+    var cleanInput = promoInput.trim().toUpperCase()
+    if (!cleanInput) {
+      setPromoError('Please enter a promo code.')
+      return
+    }
+
+    if (cleanInput === promoSettings.code) {
+      var discountAmount = Math.round((cart.cartTotal * promoSettings.percentage) / 100)
+      setAppliedPromo({
+        code: promoSettings.code,
+        percentage: promoSettings.percentage,
+        discountAmount: discountAmount
+      })
+      setPromoSuccessMsg('Promo code applied! You saved ' + promoSettings.percentage + '% (Rs. ' + discountAmount.toLocaleString() + ')')
     } else {
-      setPromoError('Invalid promo code. Please check spelling.')
+      setPromoError('Invalid promo code.')
     }
   }
 

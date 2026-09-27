@@ -1,13 +1,21 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- Google SEO Compliant Favicon Declarations -->
-    <link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/logo.png" />
-    <link rel="apple-touch-icon" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Google Site Name & Identity Declarations -->
+    <meta name="application-name" content="AR VENUE" />
+    <meta name="apple-mobile-web-app-title" content="AR VENUE" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#0a0a0a" />
+
+    <!-- Google Search & Browser Favicon Standards -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.svg" />
 
     <!-- Google Search Console Verification -->
     <meta name="google-site-verification" content="bDBjJ0uHmFcn5kAyxZQXUUaUlVOQQBnTE94eAyYKm4E" />
@@ -15,36 +23,56 @@
     <!-- Primary SEO Meta Tags -->
     <title>AR VENUE — Curated Luxury Fashion Atelier | Pakistan</title>
     <meta name="title" content="AR VENUE — Curated Luxury Fashion Atelier | Pakistan" />
-    <meta name="description" content="Discover AR VENUE's premium luxury fashion collection in Pakistan. Exclusive Shoes, Jackets, Shirts, Jeans, Belts and Accessories. Cash on Delivery nationwide. Outlet in Farooqabad, Sheikhupura." />
-    <meta name="keywords" content="AR VENUE, luxury fashion Pakistan, mens fashion Sheikhupura, premium shoes Pakistan, Farooqabad clothes outlet, Ahsan Rajpoot fashion, online shopping Pakistan, cash on delivery" />
+    <meta name="description" content="Discover AR VENUE's premium luxury fashion collection in Pakistan. Exclusive Shoes, Slippers, Fabrics, Bags, Perfumes, Jeans, Trousers and Shirts. Outlet in Farooqabad, Sheikhupura. Cash on Delivery nationwide." />
+    <meta name="keywords" content="AR VENUE, ARVENUE, luxury fashion Pakistan, mens fashion Sheikhupura, premium shoes Pakistan, Farooqabad clothes outlet, Ahsan Rajpoot fashion, online shopping Pakistan, cash on delivery" />
     <meta name="author" content="AR VENUE" />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 
-    <!-- Open Graph / WhatsApp / Facebook -->
+    <!-- Open Graph (Facebook, WhatsApp, LinkedIn) -->
+    <meta property="og:site_name" content="AR VENUE" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://arvenue.netlify.app/" />
     <meta property="og:title" content="AR VENUE — Curated Luxury Fashion Atelier" />
-    <meta property="og:description" content="Explore luxury fashion collections in Pakistan. Free delivery on orders above Rs. 10,000. Cash on Delivery available." />
+    <meta property="og:description" content="Explore luxury fashion collections in Pakistan. Free delivery nationwide on eligible orders. Cash on Delivery available." />
     <meta property="og:image" content="https://arvenue.netlify.app/images/logo/logo.png" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:site" content="@arvenue" />
     <meta property="twitter:title" content="AR VENUE — Luxury Fashion Atelier" />
     <meta property="twitter:description" content="Curated clothing, footwear and accessories delivered across Pakistan." />
     <meta property="twitter:image" content="https://arvenue.netlify.app/images/logo/logo.png" />
 
-    <!-- GEO / AI Structured Data -->
+    <!-- GOOGLE STRUCTURED DATA 1: Official Site Name Schema (Fixes 'netlify' appearing in Google snippet) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "AR VENUE",
+      "alternateName": ["ARVenue", "AR VENUE Atelier", "AR VENUE Pakistan", "arvenue"],
+      "url": "https://arvenue.netlify.app/",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://arvenue.netlify.app/shop?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- GOOGLE STRUCTURED DATA 2: Luxury Brand Organization & Store Schema (Fixes Google Logo) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "ClothingStore",
       "name": "AR VENUE",
+      "legalName": "AR VENUE Luxury Fashion",
       "url": "https://arvenue.netlify.app",
+      "logo": "https://arvenue.netlify.app/favicon.svg",
       "image": "https://arvenue.netlify.app/images/logo/logo.png",
-      "description": "AR VENUE is a premium fashion brand offering curated apparel, footwear, and accessories in Pakistan.",
+      "description": "AR VENUE is a premium luxury fashion brand offering curated apparel, footwear, fabrics, bags, perfumes and accessories in Pakistan.",
       "telephone": "+923057192862",
       "email": "Arvenue0300@gmail.com",
-      "priceRange": "Rs.",
+      "priceRange": "PKR",
       "founder": {
         "@type": "Person",
         "name": "Ahsan Rajpoot"
@@ -56,7 +84,18 @@
         "addressRegion": "Punjab",
         "addressCountry": "PK"
       },
-      "paymentAccepted": "Cash on Delivery",
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "31.7500",
+        "longitude": "73.8000"
+      },
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        "opens": "10:00",
+        "closes": "22:00"
+      },
+      "paymentAccepted": ["Cash on Delivery", "Bank Transfer"],
       "currenciesAccepted": "PKR"
     }
     </script>

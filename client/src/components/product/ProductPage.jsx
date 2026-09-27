@@ -1,5 +1,5 @@
-﻿import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useCart } from '../../context/CartContext'
 import './productpage.css'
 
@@ -11,11 +11,55 @@ function PlayIcon() {
   )
 }
 
+// Global Category Size Master Config
+var sizeMasterConfig = {
+  'mens': {
+    'slippers': ['40', '41', '42', '43', '44', '45'],
+    'fabrics': [],
+    'bags': [],
+    'perfumes': [],
+    'jeans': ['28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44'],
+    'trousers': ['28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44'],
+    'shirts': ['S', 'M', 'L', 'XL', 'XXL']
+  },
+  'womens': {
+    'slippers': ['36', '37', '38', '39', '40', '41'],
+    'fabrics': [],
+    'bags': [],
+    'perfumes': [],
+    'jeans': ['26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40'],
+    'trousers': ['26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40'],
+    'shirts': ['S', 'M', 'L', 'XL']
+  },
+  'kids': {
+    'slippers': ['6', '7', '8', '9', '10', '11', '12', '13', '1', '2', '3', '4', '5'],
+    'jeans': ['20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31'],
+    'trousers': ['20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31'],
+    'shirts': ['S', 'M', 'L', 'XL']
+  },
+  'premium-lounge': {
+    'exclusive-suits': ['S', 'M', 'L', 'XL', 'XXL'],
+    'luxury-perfumes': [],
+    'premium-slippers': ['40', '41', '42', '43', '44', '45'],
+    'limited-edition-bags': []
+  }
+}
+
 function ProductPage() {
   var params = useParams()
+  var [searchParams] = useSearchParams()
   var slug = params.slug || 'product'
   var navigate = useNavigate()
   var cart = useCart()
+
+  // Get department & category from query params if available, else infer from slug or default
+  var deptKey = searchParams.get('dept') || 'mens'
+  var catKey = searchParams.get('cat') || 'slippers'
+
+  // Resolve sizes list
+  var availableSizesList = (sizeMasterConfig[deptKey] && sizeMasterConfig[deptKey][catKey]) 
+    ? sizeMasterConfig[deptKey][catKey] 
+    : []
 
   var product = {
     slug: slug,
@@ -33,18 +77,21 @@ function ProductPage() {
       { type: 'video', url: 'https://videos.pexels.com/video-files/4434241/4434241-hd_1920_1080_30fps.mp4' }
     ],
     colors: ['#111111', '#D4AF37', '#8B4513'],
-    sizes: [
-      { name: 'S', inStock: true },
-      { name: 'M', inStock: true },
-      { name: 'L', inStock: true },
-      { name: 'XL', inStock: true }
-    ]
+    sizes: availableSizesList
   }
 
   var [activeMedia, setActiveMedia] = useState(product.media[0])
   var [activeColor, setActiveColor] = useState(product.colors[0])
-  var [activeSize, setActiveSize] = useState('M')
+  var [activeSize, setActiveSize] = useState(product.sizes.length > 0 ? product.sizes[0] : 'N/A')
   var [isFullScreen, setIsFullScreen] = useState(false)
+
+  useEffect(function() {
+    if (product.sizes.length > 0) {
+      setActiveSize(product.sizes[0])
+    } else {
+      setActiveSize('N/A')
+    }
+  }, [deptKey, catKey])
 
   function handleAddToCart() {
     cart.addToCart(product, activeSize, activeColor)
@@ -121,6 +168,7 @@ function ProductPage() {
               </div>
             </div>
 
+            {/* ONLY SHOW SIZE SECTION IF SIZES ARE DEFINED FOR THIS CATEGORY */}
             {product.sizes && product.sizes.length > 0 && (
               <div className="option-group">
                 <div className="option-title">Size</div>
@@ -129,11 +177,10 @@ function ProductPage() {
                     return (
                       <button
                         key={index}
-                        className={'size-btn' + (activeSize === size.name ? ' active' : '')}
-                        disabled={!size.inStock}
-                        onClick={function() { setActiveSize(size.name) }}
+                        className={'size-btn' + (activeSize === size ? ' active' : '')}
+                        onClick={function() { setActiveSize(size) }}
                       >
-                        {size.name}
+                        {size}
                       </button>
                     )
                   })}

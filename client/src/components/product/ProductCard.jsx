@@ -1,4 +1,4 @@
-﻿import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import './productcard.css'
 
 function HeartIcon() {
@@ -11,11 +11,13 @@ function HeartIcon() {
 
 function ProductCard(props) {
   var product = props.product
+  var params = useParams()
+  var dept = params.department || 'mens'
+  var cat = params.category || 'slippers'
 
   return (
-    <Link to={'/product/' + product.slug} className="product-card">
+    <Link to={'/product/' + product.slug + '?dept=' + dept + '&cat=' + cat} className="product-card">
       <div className="product-image-wrap" style={{ background: '#EAEAEA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {/* Placeholder Coming Soon - Admin will replace this */}
         <div style={{ color: '#888', fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase', textAlign: 'center', padding: '20px' }}>
           Image<br/>Coming<br/>Soon
         </div>

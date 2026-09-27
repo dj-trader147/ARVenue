@@ -37,26 +37,15 @@ var sizeConfig = {
   }
 }
 
-var allDummyProducts = [
-  { slug: 'prod-1', name: 'Classic Urban Article 1', price: 1200, style: 'Casual', colors: ['Black', 'Grey'] },
-  { slug: 'prod-2', name: 'Premium Edition Article 2', price: 4500, style: 'Exclusive', colors: ['Charcoal'] },
-  { slug: 'prod-3', name: 'Standard Formal Article 3', price: 2100, style: 'Formal', colors: ['Black', 'Grey'] },
-  { slug: 'prod-4', name: 'Urban Casual Article 4', price: 1500, style: 'Casual', colors: ['Grey'] },
-  { slug: 'prod-5', name: 'Signature Series Article 5', price: 3200, style: 'Exclusive', colors: ['Black', 'Gold'] },
-  { slug: 'prod-6', name: 'Basic Everyday Article 6', price: 800, style: 'Casual', colors: ['White', 'Black'] },
-  { slug: 'prod-7', name: 'Formal Elite Article 7', price: 2800, style: 'Formal', colors: ['Black'] },
-  { slug: 'prod-8', name: 'Casual Weekend Article 8', price: 1100, style: 'Casual', colors: ['Grey', 'Black'] },
-  { slug: 'prod-9', name: 'Limited Gold Article 9', price: 5500, style: 'Exclusive', colors: ['Gold'] },
-  { slug: 'prod-10', name: 'Smart Formal Article 10', price: 2400, style: 'Formal', colors: ['Black'] },
-  { slug: 'prod-11', name: 'Streetwear Article 11', price: 1600, style: 'Casual', colors: ['Charcoal', 'Grey'] },
-  { slug: 'prod-12', name: 'Supreme VIP Article 12', price: 6000, style: 'Exclusive', colors: ['Black', 'Gold', 'White'] }
-]
+/* Hardcoded dummy products removed for clean live database */
 
 function CategoryPage() {
   var params = useParams()
   var dept = params.department ? params.department.replace('-', ' ') : 'Shop'
   var catName = params.category ? params.category.replace('-', ' ') : 'All Items'
   
+  var [productsList, setProductsList] = useState([])
+  var [isLoadingProducts, setIsLoadingProducts] = useState(true)
   var [activeStyle, setActiveStyle] = useState('All')
   var [sortOrder, setSortOrder] = useState('popular')
   var [currentPage, setCurrentPage] = useState(1)
@@ -110,6 +99,28 @@ function CategoryPage() {
   useEffect(function() {
     setCurrentPage(1)
   }, [activeStyle, sortOrder])
+  // Fetch Real Products from MongoDB Atlas Backend
+  useEffect(function() {
+    var deptKey = params.department || 'mens'
+    var catKey = params.category || 'slippers'
+    setIsLoadingProducts(true)
+
+    fetch(API_BASE_URL + '/api/products?department=' + deptKey + '&category=' + catKey)
+      .then(function(res) { return res.json() })
+      .then(function(data) {
+        setIsLoadingProducts(false)
+        if (data.success) {
+          setProductsList(data.products)
+        } else {
+          setProductsList([])
+        }
+      })
+      .catch(function() {
+        setIsLoadingProducts(false)
+        setProductsList([])
+      })
+  }, [params.department, params.category])
+
 
   function handleCanPlay() {
     if (videoRef.current) {
@@ -120,7 +131,7 @@ function CategoryPage() {
     }
   }
 
-  var filteredProducts = allDummyProducts.filter(function(product) {
+  var filteredProducts = productsList.filter(function(product) {
     if (activeStyle === 'All') return true
     return product.style === activeStyle
   })
@@ -238,9 +249,16 @@ function CategoryPage() {
               })}
             </div>
           ) : (
+            {isLoadingProducts ? (
             <div style={{ textAlign: 'center', padding: '60px 0', color: '#888' }}>
-              No products found in this style.
+              Loading luxury collection...
             </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '60px 0', color: '#888' }}>
+              <p style={{ fontSize: '1rem', fontWeight: '500', color: '#111', marginBottom: '8px' }}>No products available in this category yet.</p>
+              <p style={{ fontSize: '0.8rem', color: '#8C6D46' }}>New arrivals coming soon to AR VENUE.</p>
+            </div>
+          )}
           )}
 
           {totalPages > 1 && (

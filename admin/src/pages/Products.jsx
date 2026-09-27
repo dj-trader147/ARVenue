@@ -1,6 +1,6 @@
-﻿import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { API_BASE_URL } from '../utils/api'
 
-// Yeh exactly wahi categories hain jo customer website par hain
 var departmentCategories = {
   'mens': ['Slippers', 'Fabrics', 'Bags', 'Perfumes', 'Jeans', 'Trousers', 'Shirts'],
   'womens': ['Slippers', 'Fabrics', 'Bags', 'Perfumes', 'Jeans', 'Trousers', 'Shirts'],
@@ -12,22 +12,22 @@ var adminSizeConfig = {
   'mens': {
     'Slippers': ['40','41','42','43','44','45'],
     'Fabrics': [], 'Bags': [], 'Perfumes': [],
-    'Jeans': ['28','30','32','34','36','38'],
-    'Trousers': ['28','30','32','34','36','38'],
+    'Jeans': ['28','29','30','31','32','33','34','35','36','37','38','39','40','41','42','43','44'],
+    'Trousers': ['28','29','30','31','32','33','34','35','36','37','38','39','40','41','42','43','44'],
     'Shirts': ['S','M','L','XL','XXL']
   },
   'womens': {
-    'Slippers': ['36','37','38','39','40'],
+    'Slippers': ['36','37','38','39','40','41'],
     'Fabrics': [], 'Bags': [], 'Perfumes': [],
-    'Jeans': ['24','26','28','30','32'],
-    'Trousers': ['24','26','28','30','32'],
-    'Shirts': ['XS','S','M','L','XL']
+    'Jeans': ['26','27','28','29','30','31','32','33','34','35','36','37','38','39','40'],
+    'Trousers': ['26','27','28','29','30','31','32','33','34','35','36','37','38','39','40'],
+    'Shirts': ['S','M','L','XL']
   },
   'kids': {
-    'Slippers': ['1','2','3','4','5','6','7','8','9','10','11','12','13'],
-    'Jeans': ['2-3Y','4-5Y','6-7Y','8-9Y','10-11Y','12-13Y'],
-    'Trousers': ['2-3Y','4-5Y','6-7Y','8-9Y','10-11Y','12-13Y'],
-    'Shirts': ['2-3Y','4-5Y','6-7Y','8-9Y','10-11Y','12-13Y']
+    'Slippers': ['6','7','8','9','10','11','12','13','1','2','3','4','5'],
+    'Jeans': ['20','21','22','23','24','25','26','27','28','29','30','31'],
+    'Trousers': ['20','21','22','23','24','25','26','27','28','29','30','31'],
+    'Shirts': ['S','M','L','XL']
   },
   'premium-lounge': {
     'Exclusive Suits': ['S','M','L','XL','XXL'],
@@ -39,41 +39,168 @@ var adminSizeConfig = {
 
 function Products() {
   var [dept, setDept] = useState('mens')
-  var [category, setCategory] = useState('Jeans')
+  var [category, setCategory] = useState('Slippers')
+  var [name, setName] = useState('')
+  var [price, setPrice] = useState('')
+  var [style, setStyle] = useState('Casual')
+  var [description, setDescription] = useState('')
+  var [imageUrl, setImageUrl] = useState('')
+  var [videoUrl, setVideoUrl] = useState('')
   var [colorNames, setColorNames] = useState('Black, Brown')
+  var [selectedSizes, setSelectedSizes] = useState([])
+  var [isPublishing, setIsPublishing] = useState(false)
+  var [existingProducts, setExistingProducts] = useState([])
+
+  // Load existing products on mount
+  useEffect(function() {
+    fetchProducts()
+  }, [])
+
+  function fetchProducts() {
+    fetch(API_BASE_URL + '/api/products')
+      .then(function(res) { return res.json() })
+      .then(function(data) {
+        if (data.success) setExistingProducts(data.products)
+      })
+      .catch(function() {})
+  }
 
   function handleDeptChange(e) {
     var newDept = e.target.value
     setDept(newDept)
-    setCategory(departmentCategories[newDept][0]) // Category ko dept ke pehle option pe reset karta hai
+    var firstCat = departmentCategories[newDept][0]
+    setCategory(firstCat)
+    
+    // Auto-preselect all sizes for this category
+    var defaultSizes = adminSizeConfig[newDept] && adminSizeConfig[newDept][firstCat] ? adminSizeConfig[newDept][firstCat] : []
+    setSelectedSizes(defaultSizes)
+  }
+
+  function handleCatChange(e) {
+    var newCat = e.target.value
+    setCategory(newCat)
+    
+    // Auto-preselect all sizes for this category
+    var defaultSizes = adminSizeConfig[dept] && adminSizeConfig[dept][newCat] ? adminSizeConfig[dept][newCat] : []
+    setSelectedSizes(defaultSizes)
+  }
+
+  function toggleSize(sizeStr) {
+    if (selectedSizes.includes(sizeStr)) {
+      setSelectedSizes(selectedSizes.filter(function(s) { return s !== sizeStr }))
+    } else {
+      setSelectedSizes([...selectedSizes, sizeStr])
+    }
   }
 
   function handleSubmit(e) {
     e.preventDefault()
-    alert('Product Published to Customer Website Successfully!\nDepartment: ' + dept + '\nCategory: ' + category)
+    setIsPublishing(true)
+
+    var parsedColors = (category === 'Perfumes' || category === 'Luxury Perfumes')
+      ? []
+      : colorNames.split(',').map(function(c) { return c.trim() }).filter(Boolean)
+
+    var availableCategorySizes = adminSizeConfig[dept] && adminSizeConfig[dept][category] ? adminSizeConfig[dept][category] : []
+    var finalSizes = availableCategorySizes.length > 0 ? selectedSizes : []
+
+    var defaultImage = imageUrl.trim() || 'https://images.unsplash.com/photo-1620806956627-2c9c7f66a203?w=800&q=80'
+
+    var payload = {
+      name: name,
+      price: Number(price),
+      department: dept,
+      category: category,
+      style: style,
+      description: description,
+      images: [defaultImage],
+      video: videoUrl.trim(),
+      colors: parsedColors,
+      sizes: finalSizes
+    }
+
+    fetch(API_BASE_URL + '/api/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(function(res) { return res.json() })
+      .then(function(data) {
+        setIsPublishing(false)
+        if (data.success) {
+          alert('Product Published Successfully!')
+          setName('')
+          setPrice('')
+          setDescription('')
+          setImageUrl('')
+          setVideoUrl('')
+          fetchProducts()
+        } else {
+          alert('Error: ' + data.message)
+        }
+      })
+      .catch(function(err) {
+        setIsPublishing(false)
+        alert('Failed to connect to backend server.')
+      })
   }
 
+  function handleDelete(id) {
+    if (!window.confirm('Are you sure you want to delete this product?')) return
+    fetch(API_BASE_URL + '/api/products/' + id, { method: 'DELETE' })
+      .then(function(res) { return res.json() })
+      .then(function(data) {
+        if (data.success) {
+          alert('Product deleted')
+          fetchProducts()
+        }
+      })
+  }
+
+  var availableSizes = adminSizeConfig[dept] && adminSizeConfig[dept][category] ? adminSizeConfig[dept][category] : []
+  var isPerfume = category === 'Perfumes' || category === 'Luxury Perfumes'
+
   return (
-    <div>
-      <h1 style={{ fontSize: '1.5rem', fontWeight: 400, marginBottom: '24px', color: '#111' }}>Add New Product</h1>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      <div>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 400, marginBottom: '8px', color: '#111' }}>Add New Product</h1>
+        <p style={{ color: '#666', fontSize: '0.85rem' }}>Publish new items live to the customer website instantly.</p>
+      </div>
 
       <form onSubmit={handleSubmit} className="admin-card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-
-        {/* Left Column: Details */}
+        {/* Left Column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Product Name</label>
-            <input type="text" placeholder="e.g. Classic Denim Jeans" required style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }} />
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Product Name *</label>
+            <input 
+              type="text" 
+              placeholder="e.g. AR VENUE Royal Slipper 2026" 
+              value={name}
+              onChange={function(e) { setName(e.target.value) }}
+              required 
+              style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px'}} 
+            />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Price (Rs.)</label>
-              <input type="number" placeholder="4500" required style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }} />
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Price (Rs.) *</label>
+              <input 
+                type="number" 
+                placeholder="4500" 
+                value={price}
+                onChange={function(e) { setPrice(e.target.value) }}
+                required 
+                style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }} 
+              />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Stock Quantity</label>
-              <input type="number" placeholder="50" required style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }} />
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Product Style</label>
+              <select value={style} onChange={function(e) { setStyle(e.target.value) }} style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }}>
+                <option value="Casual">Casual</option>
+                <option value="Formal">Formal</option>
+                <option value="Exclusive">Exclusive</option>
+              </select>
             </div>
           </div>
 
@@ -89,7 +216,7 @@ function Products() {
             </div>
             <div>
               <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Category (Section)</label>
-              <select value={category} onChange={function(e) { setCategory(e.target.value) }} style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }}>
+              <select value={category} onChange={handleCatChange} style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }}>
                 {departmentCategories[dept].map(function(cat) {
                   return <option key={cat} value={cat}>{cat}</option>
                 })}
@@ -98,77 +225,119 @@ function Products() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Product Style</label>
-            <select style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }}>
-              <option>Casual</option>
-              <option>Formal</option>
-              <option>Exclusive</option>
-            </select>
-          </div>
-
-          <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Description</label>
-            <textarea rows="4" placeholder="Product details..." style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px', resize: 'vertical' }}></textarea>
+            <textarea 
+              rows="4" 
+              placeholder="Product description and features..." 
+              value={description}
+              onChange={function(e) { setDescription(e.target.value) }}
+              style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px', resize: 'vertical' }}
+            />
           </div>
         </div>
 
-        {/* Right Column: Media & Variants */}
+        {/* Right Column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-          <div style={{ padding: '16px', background: '#F9FAFB', border: '1px dashed #CCC', borderRadius: '4px' }}>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Product Images (Max 4)</label>
-            <input type="file" multiple accept="image/*" style={{ fontSize: '0.85rem' }} />
-            <p style={{ fontSize: '0.7rem', color: '#666', marginTop: '4px' }}>Customers will see these on the website.</p>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Product Image Direct CDN / Image URL</label>
+            <input 
+              type="text" 
+              placeholder="https://images.unsplash.com/... or CDN link" 
+              value={imageUrl}
+              onChange={function(e) { setImageUrl(e.target.value) }}
+              style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }} 
+            />
+            <p style={{ fontSize: '0.7rem', color: '#666', marginTop: '4px' }}>Leave blank to use luxury placeholder image.</p>
           </div>
 
-          <div style={{ padding: '16px', background: '#F9FAFB', border: '1px dashed #CCC', borderRadius: '4px' }}>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Product Video (Max 1)</label>
-            <input type="file" accept="video/mp4" style={{ fontSize: '0.85rem' }} />
+          <div>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Product Video URL (Optional MP4 Link)</label>
+            <input 
+              type="text" 
+              placeholder="https://.../video.mp4" 
+              value={videoUrl}
+              onChange={function(e) { setVideoUrl(e.target.value) }}
+              style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }} 
+            />
           </div>
 
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Available Colors (Text)</label>
-            {(category === 'Perfumes' || category === 'Luxury Perfumes') ? (
+            {isPerfume ? (
               <p style={{ fontSize: '0.85rem', color: '#999', fontStyle: 'italic' }}>No colors for perfumes — color option hidden on storefront.</p>
             ) : (
-              <>
-                <input
-                  type="text"
-                  value={colorNames}
-                  onChange={function(e) { setColorNames(e.target.value) }}
-                  placeholder="e.g. Black, Brown, Navy, White"
-                  style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }}
-                />
-                <p style={{ fontSize: '0.7rem', color: '#666', marginTop: '4px' }}>Type color names separated by commas. Same text will show to customers.</p>
-              </>
+              <input
+                type="text"
+                value={colorNames}
+                onChange={function(e) { setColorNames(e.target.value) }}
+                placeholder="e.g. Black, Brown, Gold"
+                style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }}
+              />
             )}
           </div>
 
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Available Sizes</label>
-            {(function() {
-              var sizes = (adminSizeConfig[dept] && adminSizeConfig[dept][category]) ? adminSizeConfig[dept][category] : [];
-              if (sizes.length === 0) {
-                return <p style={{ fontSize: '0.85rem', color: '#999', fontStyle: 'italic' }}>No size required for this category.</p>;
-              }
-              return (
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                  {sizes.map(function(s) {
-                    return <label key={s} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}><input type="checkbox" defaultChecked /> {s}</label>
-                  })}
-                </div>
-              );
-            })()}
+            {availableSizes.length === 0 ? (
+              <p style={{ fontSize: '0.85rem', color: '#999', fontStyle: 'italic' }}>No size required for this category.</p>
+            ) : (
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                {availableSizes.map(function(s) {
+                  return (
+                    <label key={s} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedSizes.includes(s)} 
+                        onChange={function() { toggleSize(s) }} 
+                      />
+                      {s}
+                    </label>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
-          <button type="submit" style={{ padding: '16px', background: '#111', color: '#FFF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: '4px', marginTop: 'auto' }}>
-            Publish Product to Website
+          <button 
+            type="submit" 
+            disabled={isPublishing}
+            style={{ padding: '16px', background: '#111', color: '#FFF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: '4px', marginTop: 'auto', border: 'none', cursor: 'pointer' }}
+          >
+            {isPublishing ? 'Publishing...' : 'Publish Product to Website'}
           </button>
         </div>
-
       </form>
+
+      {/* Existing Live Products List */}
+      <div className="admin-card">
+        <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '16px' }}>Published Products ({existingProducts.length})</h2>
+        {existingProducts.length === 0 ? (
+          <p style={{ color: '#888' }}>No published products in database yet.</p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
+            {existingProducts.map(function(p) {
+              return (
+                <div key={p._id} style={{ border: '1px solid #EEE', borderRadius: '8px', padding: '12px', background: '#FFF' }}>
+                  <img src={p.images[0] || 'https://images.unsplash.com/photo-1620806956627-2c9c7f66a203?w=800&q=80'} alt={p.name} style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '4px' }} />
+                  <h4 style={{ fontSize: '0.9rem', margin: '8px 0 4px', fontWeight: 600 }}>{p.name}</h4>
+                  <div style={{ color: '#8C6D46', fontWeight: 'bold', fontSize: '0.9rem' }}>Rs. {p.price.toLocaleString()}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '4px', textTransform: 'capitalize' }}>
+                    {p.department} &gt; {p.category}
+                  </div>
+                  <button 
+                    onClick={function() { handleDelete(p._id) }}
+                    style={{ width: '100%', marginTop: '8px', padding: '6px', background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}
+                  >
+                    Delete Product
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
 
-export default Products
+export default Products;

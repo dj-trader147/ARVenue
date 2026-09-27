@@ -67,7 +67,7 @@ function ProductPage() {
     ? sizeMasterConfig[deptKey][catKey] 
     : []
 
-  var product = {
+  var product = realProduct || {
     slug: slug,
     name: 'Premium ' + slug.replace(/-/g, ' ').toUpperCase(),
     price: 4500,
@@ -88,7 +88,22 @@ function ProductPage() {
 
   var [activeMedia, setActiveMedia] = useState(product.media[0])
   var [activeColor, setActiveColor] = useState(categoryHasColors(catKey) && product.colors.length ? product.colors[0] : 'N/A')
-  var [activeSize, setActiveSize] = useState(product.sizes.length > 0 ? product.sizes[0] : 'N/A')
+  var [realProduct, setRealProduct] = useState(null)
+  var [activeSize, setActiveSize] = useState('N/A')
+
+  useEffect(function() {
+    fetch(API_BASE_URL + '/api/products/' + slug)
+      .then(function(res) { return res.json() })
+      .then(function(data) {
+        if (data.success && data.product) {
+          setRealProduct(data.product)
+          if (data.product.sizes && data.product.sizes.length > 0) {
+            setActiveSize(data.product.sizes[0])
+          }
+        }
+      })
+      .catch(function() {})
+  }, [slug])
   var [isFullScreen, setIsFullScreen] = useState(false)
 
   useEffect(function() {

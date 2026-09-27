@@ -37,8 +37,6 @@ var sizeConfig = {
   }
 }
 
-/* Hardcoded dummy products removed for clean live database */
-
 function CategoryPage() {
   var params = useParams()
   var dept = params.department ? params.department.replace('-', ' ') : 'Shop'
@@ -96,10 +94,7 @@ function CategoryPage() {
     }
   }, [params.department, params.category, isMobile])
 
-  useEffect(function() {
-    setCurrentPage(1)
-  }, [activeStyle, sortOrder])
-  // Fetch Real Products from MongoDB Atlas Backend
+  // 3. Fetch Real Products from MongoDB Atlas
   useEffect(function() {
     var deptKey = params.department || 'mens'
     var catKey = params.category || 'slippers'
@@ -109,7 +104,7 @@ function CategoryPage() {
       .then(function(res) { return res.json() })
       .then(function(data) {
         setIsLoadingProducts(false)
-        if (data.success) {
+        if (data.success && Array.isArray(data.products)) {
           setProductsList(data.products)
         } else {
           setProductsList([])
@@ -121,6 +116,9 @@ function CategoryPage() {
       })
   }, [params.department, params.category])
 
+  useEffect(function() {
+    setCurrentPage(1)
+  }, [activeStyle, sortOrder])
 
   function handleCanPlay() {
     if (videoRef.current) {
@@ -152,7 +150,7 @@ function CategoryPage() {
 
   return (
     <>
-      {/* Dynamic Top Hero Video Banner - Same pattern as Home Page */}
+      {/* Dynamic Top Hero Video Banner */}
       {videoUrl ? (
         <section className="category-hero-video">
           <video
@@ -242,23 +240,21 @@ function CategoryPage() {
             </select>
           </div>
 
-          {currentProducts.length > 0 ? (
+          {isLoadingProducts ? (
+            <div style={{ textAlign: 'center', padding: '80px 0', color: '#888' }}>
+              <p style={{ fontSize: '0.9rem', letterSpacing: '0.1em' }}>Loading luxury collection...</p>
+            </div>
+          ) : currentProducts.length > 0 ? (
             <div className="products-grid">
               {currentProducts.map(function(product) {
-                return <ProductCard key={product.slug} product={product} />
+                return <ProductCard key={product.slug || product._id} product={product} />
               })}
             </div>
           ) : (
-            {isLoadingProducts ? (
-            <div style={{ textAlign: 'center', padding: '60px 0', color: '#888' }}>
-              Loading luxury collection...
+            <div style={{ textAlign: 'center', padding: '80px 0', color: '#888' }}>
+              <p style={{ fontSize: '1.1rem', fontWeight: '500', color: '#111', marginBottom: '8px' }}>No products available in this category yet.</p>
+              <p style={{ fontSize: '0.85rem', color: '#8C6D46', letterSpacing: '0.05em' }}>New arrivals coming soon to AR VENUE.</p>
             </div>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '60px 0', color: '#888' }}>
-              <p style={{ fontSize: '1rem', fontWeight: '500', color: '#111', marginBottom: '8px' }}>No products available in this category yet.</p>
-              <p style={{ fontSize: '0.8rem', color: '#8C6D46' }}>New arrivals coming soon to AR VENUE.</p>
-            </div>
-          )}
           )}
 
           {totalPages > 1 && (
@@ -295,4 +291,4 @@ function CategoryPage() {
   )
 }
 
-export default CategoryPage
+export default CategoryPage;

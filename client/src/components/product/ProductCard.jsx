@@ -12,15 +12,24 @@ function HeartIcon() {
 function ProductCard(props) {
   var product = props.product
   var params = useParams()
-  var dept = params.department || 'mens'
-  var cat = params.category || 'slippers'
+  var dept = params.department || product.department || 'mens'
+  var cat = params.category || product.category || 'slippers'
+
+  var displayImage = (product.images && product.images.length > 0 && product.images[0])
+    ? product.images[0]
+    : 'https://images.unsplash.com/photo-1620806956627-2c9c7f66a203?w=800&q=80'
+
+  var cleanCatLower = String(cat).toLowerCase()
+  var isPerfume = cleanCatLower === 'perfumes' || cleanCatLower === 'luxury-perfumes'
 
   return (
     <Link to={'/product/' + product.slug + '?dept=' + dept + '&cat=' + cat} className="product-card">
-      <div className="product-image-wrap" style={{ background: '#EAEAEA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: '#888', fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase', textAlign: 'center', padding: '20px' }}>
-          Image<br/>Coming<br/>Soon
-        </div>
+      <div className="product-image-wrap" style={{ background: '#111', overflow: 'hidden' }}>
+        <img 
+          src={displayImage} 
+          alt={product.name} 
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
         
         <button 
           className="wishlist-btn" 
@@ -30,16 +39,17 @@ function ProductCard(props) {
           <HeartIcon />
         </button>
       </div>
+
       <div className="product-info">
         <h3 className="product-title">{product.name}</h3>
-        <div className="product-price">Rs. {product.price.toLocaleString()}</div>
+        <div className="product-price">Rs. {Number(product.price || 0).toLocaleString()}</div>
         
         <div className="product-rating">
           <span className="stars">☆☆☆☆☆</span>
           <span className="count">(0)</span>
         </div>
 
-        {product.colors && product.colors.length > 0 && cat !== 'perfumes' && cat !== 'luxury-perfumes' && (
+        {!isPerfume && product.colors && product.colors.length > 0 && (
           <div className="product-colors-info">
             <span>{product.colors.length} Color{product.colors.length > 1 ? 's' : ''}: {product.colors.join(', ')}</span>
           </div>
@@ -49,4 +59,4 @@ function ProductCard(props) {
   )
 }
 
-export default ProductCard
+export default ProductCard;

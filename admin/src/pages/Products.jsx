@@ -44,17 +44,15 @@ function Products() {
   var [price, setPrice] = useState('')
   var [style, setStyle] = useState('Casual')
   var [description, setDescription] = useState('')
-  
-  // Media States (File + Base64 preview)
-  var [imagePreview, setImagePreview] = useState('')
   var [imageFile, setImageFile] = useState(null)
+  var [imageUrlInput, setImageUrlInput] = useState('')
   var [videoFile, setVideoFile] = useState(null)
-  var [videoFileName, setVideoFileName] = useState('')
-  
+  var [videoUrlInput, setVideoUrlInput] = useState('')
   var [colorNames, setColorNames] = useState('Black, Brown')
   var [selectedSizes, setSelectedSizes] = useState(['40','41','42','43','44','45'])
   var [isPublishing, setIsPublishing] = useState(false)
   var [existingProducts, setExistingProducts] = useState([])
+  var [lastSuccess, setLastSuccess] = useState('')
 
   useEffect(function() {
     fetchProducts()
@@ -64,28 +62,9 @@ function Products() {
     fetch(API_BASE_URL + '/api/products')
       .then(function(res) { return res.json() })
       .then(function(data) {
-        if (data.success) setExistingProducts(data.products)
+        if (data.success) setExistingProducts(data.products || [])
       })
       .catch(function() {})
-  }
-
-  function handleImageSelect(e) {
-    var file = e.target.files[0]
-    if (!file) return
-    setImageFile(file)
-
-    var reader = new FileReader()
-    reader.onloadend = function() {
-      setImagePreview(reader.result)
-    }
-    reader.readAsDataURL(file)
-  }
-
-  function handleVideoSelect(e) {
-    var file = e.target.files[0]
-    if (!file) return
-    setVideoFile(file)
-    setVideoFileName(file.name)
   }
 
   function handleDeptChange(e) {
@@ -93,14 +72,14 @@ function Products() {
     setDept(newDept)
     var firstCat = departmentCategories[newDept][0]
     setCategory(firstCat)
-    var defaultSizes = adminSizeConfig[newDept] && adminSizeConfig[newDept][firstCat] ? adminSizeConfig[newDept][firstCat] : []
+    var defaultSizes = (adminSizeConfig[newDept] && adminSizeConfig[newDept][firstCat]) ? adminSizeConfig[newDept][firstCat] : []
     setSelectedSizes(defaultSizes)
   }
 
   function handleCatChange(e) {
     var newCat = e.target.value
     setCategory(newCat)
-    var defaultSizes = adminSizeConfig[dept] && adminSizeConfig[dept][newCat] ? adminSizeConfig[dept][newCat] : []
+    var defaultSizes = (adminSizeConfig[dept] && adminSizeConfig[dept][newCat]) ? adminSizeConfig[dept][newCat] : []
     setSelectedSizes(defaultSizes)
   }
 
@@ -108,25 +87,24 @@ function Products() {
     if (selectedSizes.includes(sizeStr)) {
       setSelectedSizes(selectedSizes.filter(function(s) { return s !== sizeStr }))
     } else {
-      setSelectedSizes([...selectedSizes, sizeStr])
+      setSelectedSizes(selectedSizes.concat([sizeStr]))
     }
   }
 
   function handleSubmit(e) {
     e.preventDefault()
+    setIsPublishing(true)
+    setLastSuccess('')
 
-    if (!imagePreview) {
-      alert('Please select a product image file from your PC or Phone.')
+    if (!imageFile && !imageUrlInput.trim()) {
+      setIsPublishing(false)
+      alert('Please upload a product image file (Option A) or paste an image URL (Option B).')
       return
     }
 
-    setIsPublishing(true)
-
-    var parsedColors = (category === 'Perfumes' || category === 'Luxury Perfumes')
-      ? []
-      : colorNames.split(',').map(function(c) { return c.trim() }).filter(Boolean)
-
-    var availableCategorySizes = adminSizeConfig[dept] && adminSizeConfig[dept][category] ? adminSizeConfig[dept][category] : []
+    var isPerfume = category === 'Perfumes' || category === 'Luxury Perfumes'
+    var parsedColors = isPerfume ? [] : colorNames.split(',').map(function(c) { return c.trim() }).filter(Boolean)
+    var availableCategorySizes = (adminSizeConfig[dept] && adminSizeConfig[dept][category]) ? adminSizeConfig[dept][category] : []
     var finalSizes = availableCategorySizes.length > 0 ? selectedSizes : []
 
     var formData = new FormData()
@@ -135,16 +113,22 @@ function Products() {
     formData.append('department', dept)
     formData.append('category', category)
     formData.append('style', style)
-    formData.append('description', description)
-    formData.append('imageUrl', imagePreview) // Send Base64 image directly for permanent Cloud DB storage
+    formData.append('description', description || '')
     formData.append('colors', JSON.stringify(parsedColors))
     formData.append('sizes', JSON.stringify(finalSizes))
 
+    // Same pattern as Videos.jsx
     if (imageFile) {
       formData.append('imageFile', imageFile)
     }
+    if (imageUrlInput.trim()) {
+      formData.append('imageUrl', imageUrlInput.trim())
+    }
     if (videoFile) {
       formData.append('videoFile', videoFile)
+    }
+    if (videoUrlInput.trim()) {
+      formData.append('videoUrl', videoUrlInput.trim())
     }
 
     fetch(API_BASE_URL + '/api/products', {
@@ -155,234 +139,225 @@ function Products() {
       .then(function(data) {
         setIsPublishing(false)
         if (data.success) {
-          alert('Product Published Successfully to Website!')
+          setLastSuccess('Product published LIVE on website: ' + name)
           setName('')
           setPrice('')
           setDescription('')
-          setImagePreview('')
           setImageFile(null)
+          setImageUrlInput('')
           setVideoFile(null)
-          setVideoFileName('')
+          setVideoUrlInput('')
           fetchProducts()
         } else {
-          alert('Error publishing product: ' + (data.message || 'Please try again.'))
+          alert('Publish failed: ' + (data.message || 'Unknown error'))
         }
       })
       .catch(function(err) {
         setIsPublishing(false)
-        alert('Error connecting to backend server.')
+        alert('Error: ' + (err.message || 'Cannot connect to backend'))
       })
   }
 
   function handleDelete(id) {
-    if (!window.confirm('Are you sure you want to delete this product?')) return
+    if (!window.confirm('Delete this product permanently?')) return
     fetch(API_BASE_URL + '/api/products/' + id, { method: 'DELETE' })
       .then(function(res) { return res.json() })
       .then(function(data) {
         if (data.success) {
-          alert('Product deleted successfully.')
           fetchProducts()
         }
       })
   }
 
-  var availableSizes = adminSizeConfig[dept] && adminSizeConfig[dept][category] ? adminSizeConfig[dept][category] : []
+  var availableSizes = (adminSizeConfig[dept] && adminSizeConfig[dept][category]) ? adminSizeConfig[dept][category] : []
   var isPerfume = category === 'Perfumes' || category === 'Luxury Perfumes'
+  var selectStyle = { width: '100%', padding: '12px', border: '1px solid #CCC', borderRadius: '4px', fontSize: '0.9rem' }
+  var labelStyle = { display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px', color: '#333' }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div>
+      <h1 style={{ fontSize: '1.5rem', fontWeight: 400, marginBottom: '8px', color: '#111' }}>Add New Product</h1>
+      <p style={{ color: '#666', fontSize: '0.85rem', marginBottom: '24px' }}>
+        Upload product image & video the same way as Video Manager — file pick from phone/PC.
+      </p>
+
+      {lastSuccess && (
+        <div style={{ background: '#D4EDDA', border: '1px solid #C3E6CB', color: '#155724', padding: '14px', borderRadius: '4px', fontSize: '0.85rem', marginBottom: '20px', fontWeight: 600 }}>
+          {lastSuccess}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="admin-card" style={{ maxWidth: '900px', background: '#FFF', border: '1px solid #E5E5E5', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div>
+            <label style={labelStyle}>Product Name *</label>
+            <input type="text" value={name} onChange={function(e) { setName(e.target.value) }} required placeholder="e.g. AR VENUE Royal Slipper" style={selectStyle} />
+          </div>
+          <div>
+            <label style={labelStyle}>Price (Rs.) *</label>
+            <input type="number" value={price} onChange={function(e) { setPrice(e.target.value) }} required placeholder="4500" style={selectStyle} />
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+          <div>
+            <label style={labelStyle}>Department</label>
+            <select value={dept} onChange={handleDeptChange} style={selectStyle}>
+              <option value="mens">Mens Collection</option>
+              <option value="womens">Womens Collection</option>
+              <option value="kids">Kids Collection</option>
+              <option value="premium-lounge">Premium Lounge</option>
+            </select>
+          </div>
+          <div>
+            <label style={labelStyle}>Category</label>
+            <select value={category} onChange={handleCatChange} style={selectStyle}>
+              {departmentCategories[dept].map(function(cat) {
+                return <option key={cat} value={cat}>{cat}</option>
+              })}
+            </select>
+          </div>
+          <div>
+            <label style={labelStyle}>Style</label>
+            <select value={style} onChange={function(e) { setStyle(e.target.value) }} style={selectStyle}>
+              <option value="Casual">Casual</option>
+              <option value="Formal">Formal</option>
+              <option value="Exclusive">Exclusive</option>
+            </select>
+          </div>
+        </div>
+
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 400, marginBottom: '8px', color: '#111' }}>Add New Product</h1>
-          <p style={{ color: '#666', fontSize: '0.85rem' }}>Upload photo and video files directly from your phone gallery or PC.</p>
-        </div>
-        <div style={{ background: '#D1FAE5', color: '#065F46', padding: '6px 14px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600 }}>
-          ✓ Direct File Upload Mode Active
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit} className="admin-card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-        {/* Left Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Product Name *</label>
-            <input 
-              type="text" 
-              placeholder="e.g. AR VENUE Royal Slipper 2026" 
-              value={name}
-              onChange={function(e) { setName(e.target.value) }}
-              required 
-              style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px'}} 
-            />
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Price (Rs.) *</label>
-              <input 
-                type="number" 
-                placeholder="4500" 
-                value={price}
-                onChange={function(e) { setPrice(e.target.value) }}
-                required 
-                style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }} 
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Product Style</label>
-              <select value={style} onChange={function(e) { setStyle(e.target.value) }} style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }}>
-                <option value="Casual">Casual</option>
-                <option value="Formal">Formal</option>
-                <option value="Exclusive">Exclusive</option>
-              </select>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Department (Collection)</label>
-              <select value={dept} onChange={handleDeptChange} style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }}>
-                <option value="mens">Mens Collection</option>
-                <option value="womens">Womens Collection</option>
-                <option value="kids">Kids Collection</option>
-                <option value="premium-lounge">Premium Lounge</option>
-              </select>
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Category (Section)</label>
-              <select value={category} onChange={handleCatChange} style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }}>
-                {departmentCategories[dept].map(function(cat) {
-                  return <option key={cat} value={cat}>{cat}</option>
-                })}
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Description</label>
-            <textarea 
-              rows="4" 
-              placeholder="Product details, fabric, care instructions..." 
-              value={description}
-              onChange={function(e) { setDescription(e.target.value) }}
-              style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px', resize: 'vertical' }}
-            />
-          </div>
+          <label style={labelStyle}>Description</label>
+          <textarea rows="3" value={description} onChange={function(e) { setDescription(e.target.value) }} placeholder="Product details..." style={{ width: '100%', padding: '12px', border: '1px solid #CCC', borderRadius: '4px', resize: 'vertical' }} />
         </div>
 
-        {/* Right Column: Direct File Uploads */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          
-          {/* Direct Image File Box */}
-          <div style={{ padding: '16px', background: '#FAFAFA', border: '2px dashed #171717', borderRadius: '6px' }}>
-            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, marginBottom: '6px', color: '#111' }}>
-              📸 Choose Product Photo File *
-            </label>
-            <input 
-              type="file" 
-              accept="image/*"
-              required={!imagePreview}
-              onChange={handleImageSelect}
-              style={{ width: '100%', fontSize: '0.85rem', cursor: 'pointer' }}
-            />
-            {imagePreview ? (
-              <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <img src={imagePreview} alt="Preview" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #171717' }} />
-                <span style={{ fontSize: '0.8rem', color: '#065F46', fontWeight: 600 }}>✓ Image Selected & Ready</span>
-              </div>
-            ) : (
-              <p style={{ fontSize: '0.75rem', color: '#666', marginTop: '6px' }}>Select a photo from phone gallery or computer.</p>
-            )}
-          </div>
+        {/* ===== IMAGE UPLOAD — SAME UI AS VIDEO MANAGER ===== */}
+        <div style={{ padding: '24px', background: '#F9FAFB', border: '2px dashed #CCC', borderRadius: '4px', textAlign: 'center' }}>
+          <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, marginBottom: '12px', cursor: 'pointer' }}>
+            Product Image — Option A: Upload Image File
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={function(e) { setImageFile(e.target.files[0] || null) }}
+            style={{ display: 'block', margin: '0 auto 12px' }}
+          />
+          {imageFile && (
+            <p style={{ fontSize: '0.8rem', color: '#155724', fontWeight: 600, marginBottom: '8px' }}>
+              Selected: {imageFile.name}
+            </p>
+          )}
 
-          {/* Direct Video File Box */}
-          <div style={{ padding: '16px', background: '#FAFAFA', border: '2px dashed #171717', borderRadius: '6px' }}>
-            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, marginBottom: '6px', color: '#111' }}>
-              🎥 Choose Product Video File (Optional MP4)
-            </label>
-            <input 
-              type="file" 
-              accept="video/mp4,video/*"
-              onChange={handleVideoSelect}
-              style={{ width: '100%', fontSize: '0.85rem', cursor: 'pointer' }}
-            />
-            {videoFileName && (
-              <p style={{ fontSize: '0.8rem', color: '#065F46', fontWeight: 600, marginTop: '8px' }}>
-                ✓ Video File Selected: {videoFileName}
-              </p>
-            )}
-          </div>
+          <div style={{ margin: '16px 0', color: '#999', fontSize: '0.8rem' }}>&mdash; OR &mdash;</div>
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Available Colors (Text)</label>
-            {isPerfume ? (
-              <p style={{ fontSize: '0.85rem', color: '#999', fontStyle: 'italic' }}>No colors for perfumes — color option hidden on storefront.</p>
-            ) : (
-              <input
-                type="text"
-                value={colorNames}
-                onChange={function(e) { setColorNames(e.target.value) }}
-                placeholder="e.g. Black, Brown, Gold"
-                style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }}
-              />
-            )}
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '8px' }}>Available Sizes</label>
-            {availableSizes.length === 0 ? (
-              <p style={{ fontSize: '0.85rem', color: '#999', fontStyle: 'italic' }}>No size required for this category.</p>
-            ) : (
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                {availableSizes.map(function(s) {
-                  return (
-                    <label key={s} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', cursor: 'pointer' }}>
-                      <input 
-                        type="checkbox" 
-                        checked={selectedSizes.includes(s)} 
-                        onChange={function() { toggleSize(s) }} 
-                      />
-                      {s}
-                    </label>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          <button 
-            type="submit" 
-            disabled={isPublishing}
-            style={{ padding: '16px', background: '#111', color: '#FFF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: '4px', marginTop: 'auto', border: 'none', cursor: 'pointer' }}
-          >
-            {isPublishing ? 'Publishing Product...' : 'Publish Product to Website'}
-          </button>
+          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '8px' }}>
+            Option B: Paste Direct Image URL
+          </label>
+          <input
+            type="url"
+            placeholder="https://domain.com/image.jpg"
+            value={imageUrlInput}
+            onChange={function(e) { setImageUrlInput(e.target.value) }}
+            style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }}
+          />
         </div>
+
+        {/* ===== VIDEO UPLOAD — SAME UI AS VIDEO MANAGER ===== */}
+        <div style={{ padding: '24px', background: '#F9FAFB', border: '2px dashed #CCC', borderRadius: '4px', textAlign: 'center' }}>
+          <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, marginBottom: '12px', cursor: 'pointer' }}>
+            Product Video — Option A: Upload MP4 Video File
+          </label>
+          <input
+            type="file"
+            accept="video/mp4,video/*"
+            onChange={function(e) { setVideoFile(e.target.files[0] || null) }}
+            style={{ display: 'block', margin: '0 auto 12px' }}
+          />
+          {videoFile && (
+            <p style={{ fontSize: '0.8rem', color: '#155724', fontWeight: 600, marginBottom: '8px' }}>
+              Selected: {videoFile.name}
+            </p>
+          )}
+
+          <div style={{ margin: '16px 0', color: '#999', fontSize: '0.8rem' }}>&mdash; OR &mdash;</div>
+
+          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '8px' }}>
+            Option B: Paste Direct MP4 Video URL
+          </label>
+          <input
+            type="url"
+            placeholder="https://domain.com/video.mp4"
+            value={videoUrlInput}
+            onChange={function(e) { setVideoUrlInput(e.target.value) }}
+            style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }}
+          />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Available Colors (Text)</label>
+          {isPerfume ? (
+            <p style={{ fontSize: '0.85rem', color: '#999', fontStyle: 'italic' }}>No colors for perfumes — hidden on storefront.</p>
+          ) : (
+            <input
+              type="text"
+              value={colorNames}
+              onChange={function(e) { setColorNames(e.target.value) }}
+              placeholder="e.g. Black, Brown, Gold"
+              style={selectStyle}
+            />
+          )}
+        </div>
+
+        <div>
+          <label style={labelStyle}>Available Sizes</label>
+          {availableSizes.length === 0 ? (
+            <p style={{ fontSize: '0.85rem', color: '#999', fontStyle: 'italic' }}>No size required for this category.</p>
+          ) : (
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              {availableSizes.map(function(s) {
+                return (
+                  <label key={s} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={selectedSizes.includes(s)} onChange={function() { toggleSize(s) }} />
+                    {s}
+                  </label>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        <button
+          type="submit"
+          disabled={isPublishing}
+          style={{ padding: '16px', background: '#111', color: '#FFF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: '4px', cursor: isPublishing ? 'wait' : 'pointer', border: 'none' }}
+        >
+          {isPublishing ? 'Publishing to Live Website...' : 'Publish Product to Website'}
+        </button>
       </form>
 
-      {/* Existing Live Products List */}
-      <div className="admin-card">
-        <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '16px' }}>Published Products ({existingProducts.length})</h2>
+      <div className="admin-card" style={{ maxWidth: '900px', marginTop: '32px', background: '#FFF', border: '1px solid #E5E5E5', padding: '24px' }}>
+        <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px' }}>Published Products ({existingProducts.length})</h2>
         {existingProducts.length === 0 ? (
-          <p style={{ color: '#888' }}>No published products in database yet.</p>
+          <p style={{ color: '#888' }}>No published products yet.</p>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
             {existingProducts.map(function(p) {
-              var pImg = p.images && p.images.length > 0 ? p.images[0] : 'https://images.unsplash.com/photo-1620806956627-2c9c7f66a203?w=800&q=80'
-              if (pImg.startsWith('/') && !pImg.startsWith('data:')) pImg = API_BASE_URL + pImg
+              var pImg = (p.images && p.images[0]) ? p.images[0] : ''
+              if (pImg && pImg.startsWith('/')) pImg = API_BASE_URL + pImg
               return (
-                <div key={p._id} style={{ border: '1px solid #EEE', borderRadius: '8px', padding: '12px', background: '#FFF' }}>
-                  <img src={pImg} alt={p.name} style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '4px' }} />
-                  <h4 style={{ fontSize: '0.9rem', margin: '8px 0 4px', fontWeight: 600 }}>{p.name}</h4>
-                  <div style={{ color: '#8C6D46', fontWeight: 'bold', fontSize: '0.9rem' }}>Rs. {p.price.toLocaleString()}</div>
-                  <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '4px', textTransform: 'capitalize' }}>
-                    {p.department} &gt; {p.category}
-                  </div>
-                  <button 
-                    onClick={function() { handleDelete(p._id) }}
-                    style={{ width: '100%', marginTop: '8px', padding: '6px', background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}
-                  >
-                    Delete Product
+                <div key={p._id} style={{ border: '1px solid #EEE', borderRadius: '8px', padding: '12px' }}>
+                  {pImg ? (
+                    <img src={pImg} alt={p.name} style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '4px' }} />
+                  ) : (
+                    <div style={{ width: '100%', height: '120px', background: '#F3F3F3', borderRadius: '4px' }} />
+                  )}
+                  <h4 style={{ fontSize: '0.85rem', margin: '8px 0 4px' }}>{p.name}</h4>
+                  <div style={{ color: '#8C6D46', fontWeight: 700, fontSize: '0.85rem' }}>Rs. {Number(p.price).toLocaleString()}</div>
+                  <div style={{ fontSize: '0.7rem', color: '#666', textTransform: 'capitalize' }}>{p.department} / {p.category}</div>
+                  <button type="button" onClick={function() { handleDelete(p._id) }} style={{ width: '100%', marginTop: '8px', padding: '6px', background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
+                    Delete
                   </button>
                 </div>
               )
@@ -394,4 +369,4 @@ function Products() {
   )
 }
 
-export default Products;
+export default Products

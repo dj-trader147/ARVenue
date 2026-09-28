@@ -45,9 +45,8 @@ function Products() {
   var [style, setStyle] = useState('Casual')
   var [description, setDescription] = useState('')
   var [imageFile, setImageFile] = useState(null)
-  var [imageUrlInput, setImageUrlInput] = useState('')
+  var [imagePreview, setImagePreview] = useState(null)
   var [videoFile, setVideoFile] = useState(null)
-  var [videoUrlInput, setVideoUrlInput] = useState('')
   var [colorNames, setColorNames] = useState('Black, Brown')
   var [selectedSizes, setSelectedSizes] = useState(['40','41','42','43','44','45'])
   var [isPublishing, setIsPublishing] = useState(false)
@@ -91,16 +90,31 @@ function Products() {
     }
   }
 
+  function handleImageChange(e) {
+    var file = e.target.files && e.target.files[0] ? e.target.files[0] : null
+    setImageFile(file)
+    if (file) {
+      setImagePreview(URL.createObjectURL(file))
+    } else {
+      setImagePreview(null)
+    }
+  }
+
+  function handleVideoChange(e) {
+    var file = e.target.files && e.target.files[0] ? e.target.files[0] : null
+    setVideoFile(file)
+  }
+
   function handleSubmit(e) {
     e.preventDefault()
-    setIsPublishing(true)
     setLastSuccess('')
 
-    if (!imageFile && !imageUrlInput.trim()) {
-      setIsPublishing(false)
-      alert('Please upload a product image file (Option A) or paste an image URL (Option B).')
+    if (!imageFile) {
+      alert('Please select a Product Image file from your phone or PC.')
       return
     }
+
+    setIsPublishing(true)
 
     var isPerfume = category === 'Perfumes' || category === 'Luxury Perfumes'
     var parsedColors = isPerfume ? [] : colorNames.split(',').map(function(c) { return c.trim() }).filter(Boolean)
@@ -116,19 +130,10 @@ function Products() {
     formData.append('description', description || '')
     formData.append('colors', JSON.stringify(parsedColors))
     formData.append('sizes', JSON.stringify(finalSizes))
+    formData.append('imageFile', imageFile)
 
-    // Same pattern as Videos.jsx
-    if (imageFile) {
-      formData.append('imageFile', imageFile)
-    }
-    if (imageUrlInput.trim()) {
-      formData.append('imageUrl', imageUrlInput.trim())
-    }
     if (videoFile) {
       formData.append('videoFile', videoFile)
-    }
-    if (videoUrlInput.trim()) {
-      formData.append('videoUrl', videoUrlInput.trim())
     }
 
     fetch(API_BASE_URL + '/api/products', {
@@ -139,14 +144,18 @@ function Products() {
       .then(function(data) {
         setIsPublishing(false)
         if (data.success) {
-          setLastSuccess('Product published LIVE on website: ' + name)
+          setLastSuccess('Product uploaded to Cloudinary CDN & published LIVE on website: ' + name)
           setName('')
           setPrice('')
           setDescription('')
           setImageFile(null)
-          setImageUrlInput('')
+          setImagePreview(null)
           setVideoFile(null)
-          setVideoUrlInput('')
+          // Reset file inputs in DOM
+          var imgInp = document.getElementById('product-image-file-input')
+          if (imgInp) imgInp.value = ''
+          var vidInp = document.getElementById('product-video-file-input')
+          if (vidInp) vidInp.value = ''
           fetchProducts()
         } else {
           alert('Publish failed: ' + (data.message || 'Unknown error'))
@@ -154,7 +163,7 @@ function Products() {
       })
       .catch(function(err) {
         setIsPublishing(false)
-        alert('Error: ' + (err.message || 'Cannot connect to backend'))
+        alert('Error uploading to Cloudinary: ' + (err.message || 'Cannot connect to backend'))
       })
   }
 
@@ -176,9 +185,14 @@ function Products() {
 
   return (
     <div>
-      <h1 style={{ fontSize: '1.5rem', fontWeight: 400, marginBottom: '8px', color: '#111' }}>Add New Product</h1>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 400, color: '#111', margin: 0 }}>Add New Product</h1>
+        <span style={{ fontSize: '0.72rem', background: '#111', color: '#C5A880', padding: '4px 10px', borderRadius: '12px', letterSpacing: '0.05em', fontWeight: 600 }}>
+          v3.0 — Direct Cloudinary Upload (No URL Required)
+        </span>
+      </div>
       <p style={{ color: '#666', fontSize: '0.85rem', marginBottom: '24px' }}>
-        Upload product image & video the same way as Video Manager — file pick from phone/PC.
+        Select product photos & optional videos directly from your mobile gallery or computer files. Images are permanently hosted 24/7 on Cloudinary CDN.
       </p>
 
       {lastSuccess && (
@@ -192,7 +206,7 @@ function Products() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div>
             <label style={labelStyle}>Product Name *</label>
-            <input type="text" value={name} onChange={function(e) { setName(e.target.value) }} required placeholder="e.g. AR VENUE Royal Slipper" style={selectStyle} />
+            <input type="text" value={name} onChange={function(e) { setName(e.target.value) }} required placeholder="e.g. AR VENUE Royal Slipper" style={selectStyle}/>
           </div>
           <div>
             <label style={labelStyle}>Price (Rs.) *</label>
@@ -230,69 +244,61 @@ function Products() {
 
         <div>
           <label style={labelStyle}>Description</label>
-          <textarea rows="3" value={description} onChange={function(e) { setDescription(e.target.value) }} placeholder="Product details..." style={{ width: '100%', padding: '12px', border: '1px solid #CCC', borderRadius: '4px', resize: 'vertical' }} />
+          <textarea rows="3" value={description} onChange={function(e) { setDescription(e.target.value) }} placeholder="Product details, fabric quality, craftsmanship..." style={{ width: '100%', padding: '12px', border: '1px solid #CCC', borderRadius: '4px', resize: 'vertical' }} />
         </div>
 
-        {/* ===== IMAGE UPLOAD — SAME UI AS VIDEO MANAGER ===== */}
-        <div style={{ padding: '24px', background: '#F9FAFB', border: '2px dashed #CCC', borderRadius: '4px', textAlign: 'center' }}>
-          <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, marginBottom: '12px', cursor: 'pointer' }}>
-            Product Image — Option A: Upload Image File
+        {/* ===== DIRECT FILE UPLOAD ONLY: PRODUCT IMAGE ===== */}
+        <div style={{ padding: '24px', background: '#FAFAFA', border: '2px dashed #C5A880', borderRadius: '6px', textAlign: 'center' }}>
+          <label style={{ display: 'block', fontSize: '0.95rem', fontWeight: 700, marginBottom: '6px', color: '#111' }}>
+            📷 Upload Product Photo *
           </label>
+          <p style={{ fontSize: '0.78rem', color: '#666', marginBottom: '14px' }}>
+            Choose image directly from phone gallery or computer (JPG, PNG, WEBP)
+          </p>
           <input
+            id="product-image-file-input"
             type="file"
             accept="image/*"
-            onChange={function(e) { setImageFile(e.target.files[0] || null) }}
-            style={{ display: 'block', margin: '0 auto 12px' }}
+            required
+            onChange={handleImageChange}
+            style={{ display: 'block', margin: '0 auto 12px', fontSize: '0.85rem' }}
           />
-          {imageFile && (
-            <p style={{ fontSize: '0.8rem', color: '#155724', fontWeight: 600, marginBottom: '8px' }}>
-              Selected: {imageFile.name}
-            </p>
+
+          {imagePreview && (
+            <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#155724', background: '#D4EDDA', padding: '4px 10px', borderRadius: '4px' }}>
+                ✓ Selected: {imageFile.name} ({(imageFile.size / 1024).toFixed(1)} KB)
+              </div>
+              <img
+                src={imagePreview}
+                alt="Upload preview"
+                style={{ width: '140px', height: '140px', objectFit: 'cover', borderRadius: '6px', border: '2px solid #C5A880', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}
+              />
+            </div>
           )}
-
-          <div style={{ margin: '16px 0', color: '#999', fontSize: '0.8rem' }}>&mdash; OR &mdash;</div>
-
-          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '8px' }}>
-            Option B: Paste Direct Image URL
-          </label>
-          <input
-            type="url"
-            placeholder="https://domain.com/image.jpg"
-            value={imageUrlInput}
-            onChange={function(e) { setImageUrlInput(e.target.value) }}
-            style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }}
-          />
         </div>
 
-        {/* ===== VIDEO UPLOAD — SAME UI AS VIDEO MANAGER ===== */}
-        <div style={{ padding: '24px', background: '#F9FAFB', border: '2px dashed #CCC', borderRadius: '4px', textAlign: 'center' }}>
-          <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, marginBottom: '12px', cursor: 'pointer' }}>
-            Product Video — Option A: Upload MP4 Video File
+        {/* ===== DIRECT FILE UPLOAD ONLY: PRODUCT VIDEO (OPTIONAL) ===== */}
+        <div style={{ padding: '24px', background: '#FAFAFA', border: '2px dashed #D1D5DB', borderRadius: '6px', textAlign: 'center' }}>
+          <label style={{ display: 'block', fontSize: '0.95rem', fontWeight: 700, marginBottom: '6px', color: '#111' }}>
+            🎬 Upload Product Video (Optional)
           </label>
+          <p style={{ fontSize: '0.78rem', color: '#666', marginBottom: '14px' }}>
+            Upload short video showcase (MP4 format from gallery / camera)
+          </p>
           <input
+            id="product-video-file-input"
             type="file"
             accept="video/mp4,video/*"
-            onChange={function(e) { setVideoFile(e.target.files[0] || null) }}
-            style={{ display: 'block', margin: '0 auto 12px' }}
+            onChange={handleVideoChange}
+            style={{ display: 'block', margin: '0 auto 12px', fontSize: '0.85rem' }}
           />
+
           {videoFile && (
-            <p style={{ fontSize: '0.8rem', color: '#155724', fontWeight: 600, marginBottom: '8px' }}>
-              Selected: {videoFile.name}
-            </p>
+            <div style={{ marginTop: '10px', fontSize: '0.75rem', fontWeight: 600, color: '#155724', background: '#D4EDDA', padding: '6px 12px', borderRadius: '4px', display: 'inline-block' }}>
+              ✓ Video Selected: {videoFile.name} ({(videoFile.size / (1024 * 1024)).toFixed(2)} MB)
+            </div>
           )}
-
-          <div style={{ margin: '16px 0', color: '#999', fontSize: '0.8rem' }}>&mdash; OR &mdash;</div>
-
-          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '8px' }}>
-            Option B: Paste Direct MP4 Video URL
-          </label>
-          <input
-            type="url"
-            placeholder="https://domain.com/video.mp4"
-            value={videoUrlInput}
-            onChange={function(e) { setVideoUrlInput(e.target.value) }}
-            style={{ width: '100%', padding: '10px', border: '1px solid #CCC', borderRadius: '4px' }}
-          />
         </div>
 
         <div>
@@ -331,9 +337,9 @@ function Products() {
         <button
           type="submit"
           disabled={isPublishing}
-          style={{ padding: '16px', background: '#111', color: '#FFF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: '4px', cursor: isPublishing ? 'wait' : 'pointer', border: 'none' }}
+          style={{ padding: '16px', background: '#111', color: '#C5A880', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderRadius: '4px', cursor: isPublishing ? 'wait' : 'pointer', border: 'none', fontSize: '0.9rem', transition: 'background 0.2s ease' }}
         >
-          {isPublishing ? 'Publishing to Live Website...' : 'Publish Product to Website'}
+          {isPublishing ? 'Uploading to 24/7 Cloud CDN & Publishing...' : 'Publish Product to Live Store'}
         </button>
       </form>
 
@@ -345,15 +351,14 @@ function Products() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
             {existingProducts.map(function(p) {
               var pImg = (p.images && p.images[0]) ? p.images[0] : ''
-              if (pImg && pImg.startsWith('/')) pImg = API_BASE_URL + pImg
               return (
                 <div key={p._id} style={{ border: '1px solid #EEE', borderRadius: '8px', padding: '12px' }}>
                   {pImg ? (
-                    <img src={pImg} alt={p.name} style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '4px' }} />
+                    <img src={pImg} alt={p.name} style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '4px' }} />
                   ) : (
-                    <div style={{ width: '100%', height: '120px', background: '#F3F3F3', borderRadius: '4px' }} />
+                    <div style={{ width: '100%', height: '140px', background: '#F3F3F3', borderRadius: '4px' }} />
                   )}
-                  <h4 style={{ fontSize: '0.85rem', margin: '8px 0 4px' }}>{p.name}</h4>
+                  <h4 style={{ fontSize: '0.85rem', margin: '8px 0 4px', fontWeight: 600 }}>{p.name}</h4>
                   <div style={{ color: '#8C6D46', fontWeight: 700, fontSize: '0.85rem' }}>Rs. {Number(p.price).toLocaleString()}</div>
                   <div style={{ fontSize: '0.7rem', color: '#666', textTransform: 'capitalize' }}>{p.department} / {p.category}</div>
                   <button type="button" onClick={function() { handleDelete(p._id) }} style={{ width: '100%', marginTop: '8px', padding: '6px', background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>

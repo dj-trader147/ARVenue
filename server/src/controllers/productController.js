@@ -1,4 +1,24 @@
 const Product = require('../models/Product');
+const cloudinary = require('cloudinary').v2;
+const stream = require('stream');
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'vpnutlqp',
+  api_key: process.env.CLOUDINARY_API_KEY || '194391765283359',
+  api_secret: process.env.CLOUDINARY_API_SECRET || 'iigXW_EIh7n6i4GE5tLXL5v50qE'
+});
+
+// Helper function to stream buffer to Cloudinary CDN
+const uploadToCloudinary = (buffer, options = {}) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(options, (error, result) => {
+      if (error) return reject(error);
+      resolve(result);
+    });
+    stream.Readable.from(buffer).pipe(uploadStream);
+  });
+};
 
 // GET /api/products (Fetch with department & category filter)
 exports.getProducts = async (req, res) => {
@@ -38,73 +58,82 @@ exports.getProductBySlug = async (req, res) => {
   }
 };
 
-// POST /api/products (Create Product with File Upload or URL)
+// POST /api/products (Create Product with Cloudinary Direct CDN Upload)
 exports.createProduct = async (req, res) => {
   try {
-    const { name, price, department, category, style, description, imageUrl, videoUrl, colors, sizes } = req.body;
+    const { name, price, department, category, style, description, colors, sizes } = req.body;
 
     if (!name || !price || !department || !category) {
       return res.status(400).json({ success: false, message: 'Please provide name, price, department, and category.' });
     }
 
-    // Process image file or URL
-    let finalImageUrl = imageUrl || '';
+    let finalImageUrl = '';
+    let finalVideoUrl = '';
+
+    // 1. Upload Image to Cloudinary CDN if provided
     if (req.files && req.files['imageFile'] && req.files['imageFile'][0]) {
-      finalImageUrl = '/uploads/images/' + req.files['imageFile'][0].filename;
+      const imgFile = req.files['imageFile'][0];
+      const result = await uploadToCloudinary(imgFile.buffer, {
+        folder: 'arvenue/products/images',
+        resource_type: 'image'
+      });
+      finalImageUrl = result.secure_url;
     }
 
-    // Process video file or URL
-    let finalVideoUrl = videoUrl || '';
+    // 2. Upload Video to Cloudinary CDN if provided
     if (req.files && req.files['videoFile'] && req.files['videoFile'][0]) {
-      finalVideoUrl = '/uploads/videos/' + req.files['videoFile'][0].filename;
+      const vidFile = req.files['videoFile'][0];
+      const result = await uploadToCloudinary(vidFile.buffer, {
+        folder: 'arvenue/products/videos',
+        resource_type: 'video'
+      });
+      finalVideoUrl = result.secure_url;
     }
 
-    // Default fallback image if nothing uploaded/pasted
-    if (!finalImageUrl) {
-      finalImageUrl = 'https://images.unsplash.com/photo-1620806956627-2c9c7f66a203?w=800&q=80';
-    }
-
-    // Generate unique slug
-    let baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    let slug = baseSlug;
-    let count = 1;
-    while (await Product.findOne({ slug })) {
-      slug = `${baseSlug}-${count}`;
-      count++;
-    }
-
-    // Parse array fields if passed as JSON string via FormData
+    // Safe JSON Parsing for Colors & Sizes
     let parsedColors = [];
     if (colors) {
-      try { parsedColors = typeof colors === 'string' ? JSON.parse(colors) : colors; } catch (e) {
-        parsedColors = String(colors).split(',').map(s => s.trim()).filter(Boolean);
+      try {
+        parsedColors = typeof colors === 'string' ? JSON.parse(colors) : colors;
+      } catch (e) {
+        parsedColors = colors.split(',').map(c => c.trim()).filter(Boolean);
       }
     }
 
     let parsedSizes = [];
     if (sizes) {
-      try { parsedSizes = typeof sizes === 'string' ? JSON.parse(sizes) : sizes; } catch (e) {
-        parsedSizes = String(sizes).split(',').map(s => s.trim()).filter(Boolean);
+      try {
+        parsedSizes = typeof sizes === 'string' ? JSON.parse(sizes) : sizes;
+      } catch (e) {
+        parsedSizes = sizes.split(',').map(s => s.trim()).filter(Boolean);
       }
     }
 
-    const product = await Product.create({
+    // Unique Slug Generation
+    const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    const uniqueSuffix = Date.now().toString(36);
+    const slug = `${baseSlug}-${uniqueSuffix}`;
+
+    const product = new Product({
       name,
       slug,
       price: Number(price),
       department: department.toLowerCase(),
-      category: category.trim(),
+      category,
       style: style || 'Casual',
       description: description || '',
-      images: [finalImageUrl],
-      video: finalVideoUrl,
+      images: finalImageUrl ? [finalImageUrl] : [],
+      video: finalVideoUrl || '',
       colors: parsedColors,
-      sizes: parsedSizes
+      sizes: parsedSizes,
+      isActive: true
     });
 
-    res.status(201).json({ success: true, product });
+    await product.save();
+    res.status(201).json({ success: true, message: 'Product published successfully to Cloudinary & Live Store', product });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('Error creating product:', err);
+    res.status(500).json({ success: false, message: err.message || 'Server error uploading product' });
   }
 };
 
@@ -115,7 +144,7 @@ exports.deleteProduct = async (req, res) => {
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
-    res.json({ success: true, message: 'Product deleted successfully' });
+    res.json({ success: true, message: 'Product deleted permanently' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
